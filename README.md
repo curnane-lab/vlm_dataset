@@ -137,6 +137,14 @@ python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
   --output-root /tmp/distill_smoke --max-rows 20 $COMMON
 # -> 抽查 /tmp/distill_smoke 各数据集答案质量, 重点: CASIA 手写行(tier3 唯一风险点)
 
+# Step 0.5 (可选): 先导试验用下采样副本, 如 tier2 192 万行 -> 约 9.6 万行
+# 采样只读源数据, 产物是独立小数据集; 蒸馏用 --in-place 刷副本即可(不碰源)
+python3 /data/mineru/distill/sample_dataset.py --data-root $DATA \
+  --manifest $DATA/dataset_manifest_tier2.json \
+  --output-root $REGEN/tier2_s20 --sample-rate 0.05
+python3 /data/mineru/distill/distill_qa.py --data-root $REGEN/tier2_s20 \
+  --in-place $COMMON --resume
+
 # Step 1: tier1 全量 -> 训练 -> 文档解析指标 (775 分片 / 89.0 万行)
 python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
   --manifest $DATA/dataset_manifest_tier1.json \
@@ -191,10 +199,12 @@ manifests/
 
 ```
 pipeline/
-├── start_teachers.sh      # 拉起教师实例池(参数化卡数/端口/显存, 幂等)
+├── start_teachers.sh      # 拉起教师实例池(参数化卡数/端口/显存, 幂等; 默认 7 卡 0.8)
 ├── distill_qa.py          # 蒸馏主脚本: manifest 驱动, two-step(默认, MinerU
 │                          # 两阶段) / single 两种教师模式, 流式读写 parquet,
 │                          # 支持原地刷回(--in-place)与备份两种输出, 断点续跑
+├── sample_dataset.py      # 确定性下采样预处理(crc32 哈希选行): 源数据只读,
+│                          # 产物为独立小数据集 + 行数修正后的 manifest, 先导试验用
 └── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
 ```
 

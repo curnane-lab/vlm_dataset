@@ -72,6 +72,20 @@ def norm_rel_path(p: str) -> str:
     return p
 
 
+def make_sampler(sample_rate: float):
+    """确定性下采样器: keep(i) = crc32(分片路径#行号) 命中 sample_rate 比例。
+    同分片同采样率重跑选中行完全一致。sample_dataset.py 预处理用。"""
+    if sample_rate >= 1.0:
+        return None
+    import zlib
+    threshold = int(sample_rate * 1_000_000)
+
+    def keep(rel: str, i: int) -> bool:
+        return zlib.crc32(f"{rel}#{i}".encode()) % 1_000_000 < threshold
+
+    return keep
+
+
 # ----------------------------------------------------------------------
 # 教师模型调用
 # ----------------------------------------------------------------------
@@ -365,16 +379,22 @@ def process_file(src_path, dst_path, pool, max_rows=None,
     if not in_place:
         os.makedirs(os.path.dirname(dst_path), exist_ok=True)
 
-    n = fail = 0
-    writer = None
+    seen = 0      # 已读源行数
+    n = fail = 0  # n = 实际写出行数
+    writer = pq.ParquetWriter(out_path, schema=pf.schema_arrow)
     try:
         with ThreadPoolExecutor(max_workers=pool.workers) as ex:
-            for batch in pf.iter_batches(batch_size=chunk_rows):
-                if n >= total_rows:
+            # total_rows == 0 时 iter_batches 对 0 row-group 文件会抛异常, 短路
+            batches = pf.iter_batches(batch_size=chunk_rows) if total_rows else []
+            for batch in batches:
+                if seen >= total_rows:
                     break
                 chunk = batch.to_pandas()
-                if max_rows and n + len(chunk) > total_rows:
-                    chunk = chunk.head(total_rows - n)
+                if seen + len(chunk) > total_rows:
+                    chunk = chunk.head(total_rows - seen)
+                seen += len(chunk)
+                if len(chunk) == 0:
+                    continue
                 records = chunk.to_dict("records")
                 results_msgs = [None] * len(records)
                 futs = {ex.submit(row_fn, row): i
@@ -393,14 +413,10 @@ def process_file(src_path, dst_path, pool, max_rows=None,
                     index=chunk.index)
                 table = pa.Table.from_pandas(chunk, schema=pf.schema_arrow,
                                              preserve_index=False)
-                if writer is None:
-                    writer = pq.ParquetWriter(out_path,
-                                              schema=pf.schema_arrow)
                 writer.write_table(table)
                 n += len(chunk)
     finally:
-        if writer is not None:
-            writer.close()
+        writer.close()
 
     if in_place:
         # 原地模式: 临时文件 + 原子替换, 防止中途崩溃损坏源 parquet
