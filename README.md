@@ -162,3 +162,16 @@ manifests/
 ├── dataset_manifest_smoke.json      # 冒烟: 11 数据集各首分片(须配 --max-rows)
 └── dataset_manifest_holdout.json    # QA+grounding    94 分片 / 1,630,433 行(不刷)
 ```
+
+`pipeline/` 为 NPU 训练机侧的蒸馏管线脚本(Ascend 910B + vLLM,教师 MinerU2.5-Pro):
+
+```
+pipeline/
+├── start_teachers.sh      # 拉起教师实例池(参数化卡数/端口/显存, 幂等)
+├── distill_qa.py          # 蒸馏主脚本: manifest 驱动, two-step(默认, MinerU
+│                          # 两阶段) / single 两种教师模式, 流式读写 parquet,
+│                          # 支持原地刷回(--in-place)与备份两种输出, 断点续跑
+└── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
+```
+
+冒烟示例: `python3 pipeline/distill_qa.py --data-root <数据根> --manifest manifests/dataset_manifest_smoke.json --output-root /tmp/smoke --max-rows 20 --num-instances 3 --base-port 30000 --model mineru-vlm`
