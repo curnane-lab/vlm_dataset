@@ -67,8 +67,8 @@ manifest schema:
 ## 4. 四档分类(按 MinerU2.5-Pro 蒸馏适配度)
 
 MinerU2.5-Pro 是文档解析专用 VLM(整页/块图 → MD/HTML/LaTeX,不支持自由问答)。
-据此把 18 个数据集分为四档。tier manifest 文件(`dataset_manifest_{tier1,tier2,tier3,smoke,holdout}.json`)
-位于数据盘 `F:\omnidoc_vlm\` 下(由 `make_tier_manifests.py` 从主 manifest 生成),不入本仓。
+据此把 18 个数据集分为四档,tier manifest 见本仓 `manifests/`(数据盘 `F:\omnidoc_vlm\` 下有相同文件,
+由 `make_tier_manifests.py` 从主 manifest 生成)。
 
 | 档位 | 定位 | 数据集 | 分片 | 行数 | 占比 |
 |---|---|---|---:|---:|---:|
@@ -148,13 +148,13 @@ MANIFEST=dataset_manifest_tier3.json bash run_regenerate.sh
 | CASIA-HMDB2-line assistant 中文乱码 | 答案不可用 | 源数据即如此;tier3 regenerate 可修复 |
 | 数据在移动硬盘 F: | 盘符随机器变化 | 训练机上以 `data_root` 参数/manifest 字段为准 |
 
-## 7. 说明
+## 7. 仓库内容
 
-本仓仅归档统计信息与四档分类(本文档),不含数据与 manifest 文件。
-数据与全部 manifest 位于数据盘 `F:\omnidoc_vlm\`:
+本仓归档统计信息、四档分类(本文档)与全部 manifest 文件(`manifests/`,共 ~332KB),不含 parquet 数据。
+数据本体位于数据盘 `F:\omnidoc_vlm\`:
 
 ```
-F:\omnidoc_vlm\
+manifests/
 ├── dataset_manifest.json            # 主 manifest (18 数据集 / 959 分片 / 4,478,676 行)
 ├── dataset_manifest_tier1.json      # 文档页面解析   775 分片 / 890,447 行
 ├── dataset_manifest_tier2.json      # 公式+表格       88 分片 / 1,922,405 行

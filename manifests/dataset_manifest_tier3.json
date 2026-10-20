@@ -1,0 +1,35 @@
+{
+ "version": 1,
+ "data_root": "F:\\omnidoc_vlm",
+ "comment": "OCR 但特殊情况: CASIA 手写行(原答案乱码,刷可修复), iiit5k 场景文字(域外)",
+ "datasets": [
+  {
+   "name": "CASIA-HMDB2-line_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 33401,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "CASIA-HMDB2-line_vlm/vlm_parquet/train-00000-of-00001.parquet",
+     "rows": 33401,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FineVision_scene_text_recognition_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 1990,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "FineVision_scene_text_recognition_vlm/vlm_parquet/train-00000-of-00001.parquet",
+     "rows": 1990,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  }
+ ]
+}

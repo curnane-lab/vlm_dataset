@@ -1,0 +1,540 @@
+{
+ "version": 1,
+ "data_root": "F:\\omnidoc_vlm",
+ "comment": "本轮不刷: QA 类(自由问答) + grounding(label 体系不符), 仅留档",
+ "datasets": [
+  {
+   "name": "FineVision_document_qa_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 10189,
+   "num_files": 26,
+   "files": [
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00000-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00001-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00002-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00003-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00004-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00005-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00006-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00007-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00008-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00009-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00010-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00011-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00012-of-00026.parquet",
+     "rows": 200,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00013-of-00026.parquet",
+     "rows": 208,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00014-of-00026.parquet",
+     "rows": 408,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00015-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00016-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00017-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00018-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00019-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00020-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00021-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00022-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00023-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00024-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_document_qa_vlm/vlm_parquet/train-00025-of-00026.parquet",
+     "rows": 407,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FineVision_handwritten_qa_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 20457,
+   "num_files": 44,
+   "files": [
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00000-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00001-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00002-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00003-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00004-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00005-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00006-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00007-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00008-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00009-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00010-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00011-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00012-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00013-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00014-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00015-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00016-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00017-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00018-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00019-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00020-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00021-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00022-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00023-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00024-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00025-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00026-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00027-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00028-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00029-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00030-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00031-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00032-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00033-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00034-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00035-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00036-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00037-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00038-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00039-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00040-of-00044.parquet",
+     "rows": 465,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00041-of-00044.parquet",
+     "rows": 464,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00042-of-00044.parquet",
+     "rows": 464,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_handwritten_qa_vlm/vlm_parquet/train-00043-of-00044.parquet",
+     "rows": 464,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FineVision_kie_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 33616,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "FineVision_kie_vlm/vlm_parquet/train-00000-of-00001.parquet",
+     "rows": 33616,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FineVision_scene_text_vqa_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 21943,
+   "num_files": 5,
+   "files": [
+    {
+     "path": "FineVision_scene_text_vqa_vlm/vlm_parquet/train-00000-of-00005.parquet",
+     "rows": 4389,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_scene_text_vqa_vlm/vlm_parquet/train-00001-of-00005.parquet",
+     "rows": 4389,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_scene_text_vqa_vlm/vlm_parquet/train-00002-of-00005.parquet",
+     "rows": 4389,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_scene_text_vqa_vlm/vlm_parquet/train-00003-of-00005.parquet",
+     "rows": 4388,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FineVision_scene_text_vqa_vlm/vlm_parquet/train-00004-of-00005.parquet",
+     "rows": 4388,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "tinychart_train_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 1520677,
+   "num_files": 10,
+   "files": [
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00000-of-00010.parquet",
+     "rows": 121795,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00001-of-00010.parquet",
+     "rows": 93239,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00002-of-00010.parquet",
+     "rows": 101471,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00003-of-00010.parquet",
+     "rows": 117446,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00004-of-00010.parquet",
+     "rows": 122084,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00005-of-00010.parquet",
+     "rows": 92301,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00006-of-00010.parquet",
+     "rows": 246250,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00007-of-00010.parquet",
+     "rows": 261542,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00008-of-00010.parquet",
+     "rows": 193685,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "tinychart_train_vlm/vlm_parquet/train-00009-of-00010.parquet",
+     "rows": 170864,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "HRDH_grounding_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 14365,
+   "num_files": 4,
+   "files": [
+    {
+     "path": "HRDH_grounding_vlm/vlm_parquet/train-00000-of-00004.parquet",
+     "rows": 4023,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "HRDH_grounding_vlm/vlm_parquet/train-00001-of-00004.parquet",
+     "rows": 3732,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "HRDH_grounding_vlm/vlm_parquet/train-00002-of-00004.parquet",
+     "rows": 3834,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "HRDH_grounding_vlm/vlm_parquet/train-00003-of-00004.parquet",
+     "rows": 2776,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "HRDS_grounding_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 9186,
+   "num_files": 4,
+   "files": [
+    {
+     "path": "HRDS_grounding_vlm/vlm_parquet/train-00000-of-00004.parquet",
+     "rows": 2746,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "HRDS_grounding_vlm/vlm_parquet/train-00001-of-00004.parquet",
+     "rows": 2807,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "HRDS_grounding_vlm/vlm_parquet/train-00002-of-00004.parquet",
+     "rows": 2809,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "HRDS_grounding_vlm/vlm_parquet/train-00003-of-00004.parquet",
+     "rows": 824,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  }
+ ]
+}

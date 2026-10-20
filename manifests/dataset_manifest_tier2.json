@@ -1,0 +1,492 @@
+{
+ "version": 1,
+ "data_root": "F:\\omnidoc_vlm",
+ "comment": "MinerU2.5-Pro 核心能力: 公式->LaTeX, 表格->HTML",
+ "datasets": [
+  {
+   "name": "UniMER_Dataset_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 986122,
+   "num_files": 3,
+   "files": [
+    {
+     "path": "UniMER_Dataset_vlm/vlm_parquet/train-00000-of-00003.parquet",
+     "rows": 426950,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "UniMER_Dataset_vlm/vlm_parquet/train-00001-of-00003.parquet",
+     "rows": 428649,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "UniMER_Dataset_vlm/vlm_parquet/train-00002-of-00003.parquet",
+     "rows": 130523,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "MathWriting-human_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 229864,
+   "num_files": 3,
+   "files": [
+    {
+     "path": "MathWriting-human_vlm/vlm_parquet/train-00000-of-00003.parquet",
+     "rows": 76622,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "MathWriting-human_vlm/vlm_parquet/train-00001-of-00003.parquet",
+     "rows": 76621,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "MathWriting-human_vlm/vlm_parquet/train-00002-of-00003.parquet",
+     "rows": 76621,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FinTabNet_OTSL_HTML_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 74835,
+   "num_files": 11,
+   "files": [
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00000-of-00011.parquet",
+     "rows": 6804,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00001-of-00011.parquet",
+     "rows": 6804,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00002-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00003-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00004-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00005-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00006-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00007-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00008-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00009-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00010-of-00011.parquet",
+     "rows": 6803,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "PubTables-1M_OTSL-v1.1_HTML_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 522874,
+   "num_files": 48,
+   "files": [
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00000-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00001-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00002-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00003-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00004-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00005-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00006-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00007-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00008-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00009-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00010-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00011-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00012-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00013-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00014-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00015-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00016-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00017-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00018-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00019-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00020-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00021-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00022-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00023-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00024-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00025-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00026-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00027-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00028-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00029-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00030-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00031-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00032-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00033-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00034-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00035-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00036-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00037-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00038-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00039-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00040-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00041-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00042-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00043-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00044-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00045-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00046-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00047-of-00048.parquet",
+     "rows": 10893,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "PubTables-v2_cropped_table2html_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 108710,
+   "num_files": 23,
+   "files": [
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00000-of-00023.parquet",
+     "rows": 5354,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00001-of-00023.parquet",
+     "rows": 5328,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00002-of-00023.parquet",
+     "rows": 5361,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00003-of-00023.parquet",
+     "rows": 5362,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00004-of-00023.parquet",
+     "rows": 5386,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00005-of-00023.parquet",
+     "rows": 5369,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00006-of-00023.parquet",
+     "rows": 1323,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00007-of-00023.parquet",
+     "rows": 5374,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00008-of-00023.parquet",
+     "rows": 5324,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00009-of-00023.parquet",
+     "rows": 5345,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00010-of-00023.parquet",
+     "rows": 5339,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00011-of-00023.parquet",
+     "rows": 5343,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00012-of-00023.parquet",
+     "rows": 5351,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00013-of-00023.parquet",
+     "rows": 1300,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00014-of-00023.parquet",
+     "rows": 5384,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00015-of-00023.parquet",
+     "rows": 5335,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00016-of-00023.parquet",
+     "rows": 5347,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00017-of-00023.parquet",
+     "rows": 5379,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00018-of-00023.parquet",
+     "rows": 5361,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00019-of-00023.parquet",
+     "rows": 5329,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00020-of-00023.parquet",
+     "rows": 1311,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00021-of-00023.parquet",
+     "rows": 5360,
+     "schema_adapter": "qwen_vl"
+    },
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00022-of-00023.parquet",
+     "rows": 3045,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  }
+ ]
+}

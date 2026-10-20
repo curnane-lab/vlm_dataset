@@ -1,0 +1,161 @@
+{
+ "version": 1,
+ "data_root": "F:\\omnidoc_vlm",
+ "comment": "管线冒烟: 每个数据集仅首分片. 注意: 必须配合 --max-rows N 使用 (UniMER 等单分片达 33 万行, 直接跑量太大)",
+ "datasets": [
+  {
+   "name": "Infinity-Doc-400K_parsing_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 1313,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "Infinity-Doc-400K_parsing_vlm/vlm_parquet/train-00000-of-00729.parquet",
+     "rows": 1313,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "Vary-600k_parsing_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 10249,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "Vary-600k_parsing_vlm/vlm_parquet/train-00000-of-00038.parquet",
+     "rows": 10249,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "HRDH_parsing_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 4096,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "HRDH_parsing_vlm/vlm_parquet/train-00000-of-00004.parquet",
+     "rows": 4096,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "HRDS_parsing_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 2817,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "HRDS_parsing_vlm/vlm_parquet/train-00000-of-00004.parquet",
+     "rows": 2817,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "UniMER_Dataset_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 426950,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "UniMER_Dataset_vlm/vlm_parquet/train-00000-of-00003.parquet",
+     "rows": 426950,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "MathWriting-human_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 76622,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "MathWriting-human_vlm/vlm_parquet/train-00000-of-00003.parquet",
+     "rows": 76622,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FinTabNet_OTSL_HTML_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 6804,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00000-of-00011.parquet",
+     "rows": 6804,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "PubTables-1M_OTSL-v1.1_HTML_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 10894,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00000-of-00048.parquet",
+     "rows": 10894,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "PubTables-v2_cropped_table2html_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 5354,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00000-of-00023.parquet",
+     "rows": 5354,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "CASIA-HMDB2-line_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 33401,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "CASIA-HMDB2-line_vlm/vlm_parquet/train-00000-of-00001.parquet",
+     "rows": 33401,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  },
+  {
+   "name": "FineVision_scene_text_recognition_vlm",
+   "schema_adapter": "qwen_vl",
+   "weight": 1.0,
+   "total_rows": 1990,
+   "num_files": 1,
+   "files": [
+    {
+     "path": "FineVision_scene_text_recognition_vlm/vlm_parquet/train-00000-of-00001.parquet",
+     "rows": 1990,
+     "schema_adapter": "qwen_vl"
+    }
+   ]
+  }
+ ]
+}
