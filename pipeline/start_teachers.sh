@@ -2,10 +2,10 @@
 # 启动 NPU 教师实例池(纯 VLM 模式, 供 distill_qa.py 使用)
 #
 # 用法:
-#   bash start_teachers.sh                        # 默认: 3 实例, 卡 0 1 2, 端口 30000/30001/30002
+#   bash start_teachers.sh                        # 默认: 7 实例, 卡 0-6, 端口 30000-30006, 显存 0.8
 #   bash start_teachers.sh -n 2                   # 2 实例: 取卡列表前 2 张
 #   bash start_teachers.sh --cards "0 2"          # 指定用哪几张卡(每卡 1 实例)
-#   bash start_teachers.sh --utils "0.5 0.2 0.2"  # 逐实例显存比例
+#   bash start_teachers.sh --utils "0.5 0.2"      # 逐实例显存比例
 #   bash start_teachers.sh --base-port 31000      # 改起始端口
 #   bash start_teachers.sh -n 1 --cards "0" --utils "0.6" --base-port 30000
 set -u
@@ -13,8 +13,9 @@ set -u
 MODEL_DIR=/data/mineru/models/MinerU2.5-Pro-2604-1.2B
 BASE_PORT=30000
 NUM_INSTANCES=""
-CARDS="0 1 2"
+CARDS="0 1 2 3 4 5 6"
 UTILS=""
+DEFAULT_UTIL=0.8
 
 usage() {
     sed -n '2,10p' "$0"
@@ -52,10 +53,10 @@ if [ -n "$UTILS" ]; then
         echo "--utils 数量(${#util_arr[@]})须与实例数($N)一致" >&2; exit 1
     fi
 else
-    # 默认: 卡0我们独占用 0.5, 其余卡有邻居保守 0.15; 按实际占用用 --utils 覆盖
+    # 默认: 每实例统一 DEFAULT_UTIL; 按实际占用用 --utils 覆盖
     util_arr=()
     for card in "${card_arr[@]}"; do
-        util_arr+=( "$( [ "$card" = "0" ] && echo 0.5 || echo 0.15 )" )
+        util_arr+=( "$DEFAULT_UTIL" )
     done
 fi
 
