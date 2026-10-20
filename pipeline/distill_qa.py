@@ -29,9 +29,10 @@ distill_qa.py — 基于 vLLM 教师模型的 VLM QA 数据蒸馏脚本 (Linux)
                            table→HTML、paratext 丢弃)
                grounding : HRD grounding, 序列化为 JSON [{class,text,bbox}]
                crop      : 识别级 crop (UniMER/MathWriting/CASIA/FinTabNet/
-                           PubTables), 直接拼接块识别内容 (LaTeX/文本/HTML)
-               skip      : QA 类 (FineVision*/tinychart), two-step 答非所问,
-                           本轮跳过不蒸馏
+                           PubTables/场景文字识别), 直接拼接块识别内容
+                           (LaTeX/文本/HTML)
+               skip      : holdout 档 (tinychart + FineVision QA/KIE +
+                           HRD grounding), 本轮跳过不蒸馏
              线程模型: 每个工作线程绑定一个实例 (round-robin), 持有持久的
              asyncio 事件循环 + MinerUClient (http-client), 连接复用。
   single   : 把对话历史+图片直接发给 /v1/chat/completions, 单步出答案。
@@ -178,12 +179,16 @@ class TeacherPool:
 # ----------------------------------------------------------------------
 
 def route_dataset(name: str) -> str:
-    """two-step 模式的数据集路由: markdown / grounding / crop / skip。"""
+    """two-step 模式的数据集路由: markdown / grounding / crop / skip。
+    skip 名单与 vlm_dataset 仓 README 四档分类 (holdout) 对齐。"""
     n = name.lower()
-    if "finevision" in n or "tinychart" in n:
-        return "skip"
+    if "tinychart" in n:
+        return "skip"          # 图表 QA: two-step 答非所问
+    if "finevision" in n:
+        # FineVision 仅场景文字识别 (iiit5k) 是 OCR 任务 (tier3), 其余 QA/KIE holdout
+        return "crop" if "scene_text_recognition" in n else "skip"
     if "grounding" in n:
-        return "grounding"
+        return "skip"          # HRD grounding label 体系与 MinerU 版面类别不符
     if any(k in n for k in ("unimer", "mathwriting", "casia",
                             "fintabnet", "pubtables", "formula")):
         return "crop"
