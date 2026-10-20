@@ -124,21 +124,45 @@ prompt 确定性选取、regenerate 只替换末条 assistant,各档间唯一变
 可做干净对照:
 
 ```bash
-# Step 0: 全链路冒烟(11 数据集 x 20 行;--max-rows 必须,UniMER 单分片 33 万行)
-SMOKE=1 MANIFEST=dataset_manifest_smoke.json bash run_regenerate.sh
-# Step 1: tier1 全量 -> 训练 -> 文档解析指标
-MANIFEST=dataset_manifest_tier1.json bash run_regenerate.sh
-# Step 2: tier2 全量 -> 训练 -> 对比 tier1-only vs tier1+2(表格 TEDS / 公式指标)
-MANIFEST=dataset_manifest_tier2.json bash run_regenerate.sh
-# Step 3: tier3 先人工抽查 MinerU 手写/场景文字质量,行则刷(CASIA 刷完=修复乱码)
-MANIFEST=dataset_manifest_tier3.json bash run_regenerate.sh
+# ========== 前置: 拉起 7 卡教师池 (NPU 训练机, Ascend 910B + vLLM) ==========
+bash /data/mineru/start_teachers.sh
+
+DATA=/data/omnidoc_vlm          # F 盘挂载点(按实际改)
+REGEN=/data/omnidoc_vlm_regen   # 再生输出根目录(大盘, 按实际改)
+COMMON="--num-instances 7 --base-port 30000 --model mineru-vlm --workers-per-instance 8"
+
+# Step 0: 全链路冒烟(11 数据集首分片 x 20 行, 备份模式不动源数据)
+python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
+  --manifest $DATA/dataset_manifest_smoke.json \
+  --output-root /tmp/distill_smoke --max-rows 20 $COMMON
+# -> 抽查 /tmp/distill_smoke 各数据集答案质量, 重点: CASIA 手写行(tier3 唯一风险点)
+
+# Step 1: tier1 全量 -> 训练 -> 文档解析指标 (775 分片 / 89.0 万行)
+python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
+  --manifest $DATA/dataset_manifest_tier1.json \
+  --output-root $REGEN/tier1 $COMMON --resume
+
+# Step 2: tier2 全量 -> 训练 -> 对比 tier1-only vs tier1+2 (88 分片 / 192.2 万行)
+python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
+  --manifest $DATA/dataset_manifest_tier2.json \
+  --output-root $REGEN/tier12 $COMMON --resume
+
+# Step 3: tier3 先人工抽查 MinerU 手写/场景文字质量,行则刷 (2 分片 / 3.5 万行)
+python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
+  --manifest $DATA/dataset_manifest_tier3.json \
+  --output-root $REGEN/tier123 $COMMON --resume
 ```
 
 - manifest 的 `files[].path` 为相对路径;regenerate 输出保持相同相对结构,
   训练时把 tier manifest 拷到备份根目录(或改 `data_root`)即可在
   原始 / tier1 刷后 / tier1+2 刷后之间切换做 ablation。
-- regenerate 管线(omnidoc_distill/): parquet 图片落盘 → MinerU-Popo 管线出 MD →
-  重写备份 parquet,原始数据全程只读;支持断点续跑、缺失目录自动 skip。
+- regenerate 管线(`pipeline/distill_qa.py`, NPU 训练机侧): parquet 流式
+  读取(`iter_batches` 块读, 不整片进内存) → 图片内存解码直送教师池
+  (MinerU2.5-Pro two-step 两阶段: 版面检测 + 裁块识别, 与 OmniDocBench
+  评测同源) → 重写备份 parquet。**无任何中间产物落盘**(不生成 PDF/中间
+  markdown/html 文件);数据集按类型自动路由序列化(tier1→markdown,
+  tier2/3→crop 块内容直拼, holdout 自动 skip);支持断点续跑(`--resume`)、
+  缺失目录自动 skip;`--in-place` 可改原地刷回(原子替换, 牺牲 ablation 换磁盘)。
 
 ## 6. 已知问题
 
