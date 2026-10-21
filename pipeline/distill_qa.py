@@ -512,6 +512,9 @@ def main():
     ap.add_argument("--retries", type=int, default=3)
     ap.add_argument("--resume", action="store_true",
                     help="跳过已完成的输出分片")
+    ap.add_argument("--skip-footer-check", action="store_true",
+                    help="跳过预检中的 parquet footer 可读性/行数体检 "
+                         "(默认开启; 传输截断的文件存在但 footer 损坏)")
     args = ap.parse_args()
 
     # 安全检查: 备份模式下输出目录必须与数据目录不同, 防止覆盖原始 parquet
@@ -560,6 +563,37 @@ def main():
         if pre_missing == pre_total:
             print("  *** 全部缺失! 检查 --data-root 是否正确, 或 manifest "
                   "路径是否含盘符/反斜杠 ***", file=sys.stderr)
+
+    # ---- footer 体检: 存在不代表可读。传输截断的文件存在但 footer 损坏,
+    #      跑几小时到该分片才崩; 逐分片 read_metadata + 行数比对, 提前暴露 ----
+    if not args.skip_footer_check:
+        pre_corrupt = []
+        for ds in manifest["datasets"]:
+            if args.datasets and ds["name"] not in args.datasets:
+                continue
+            files = ds.get("files") or []
+            if args.max_files:
+                files = files[:args.max_files]
+            for finfo in files:
+                rel = norm_rel_path(finfo["path"])
+                p = os.path.join(args.data_root, rel)
+                if not os.path.exists(p):
+                    continue  # 缺失已在上面统计
+                try:
+                    n = pq.read_metadata(p).num_rows
+                    if finfo.get("rows") is not None and n != finfo["rows"]:
+                        pre_corrupt.append(
+                            (rel, f"行数 {n} != manifest {finfo['rows']}"))
+                except Exception as e:  # noqa: BLE001
+                    pre_corrupt.append(
+                        (rel, f"footer 不可读: {type(e).__name__}"))
+        print(f"footer 体检: {pre_total - pre_missing} 个已存在分片, "
+              f"损坏 {len(pre_corrupt)}")
+        if pre_corrupt:
+            for rel, why in pre_corrupt[:10]:
+                print(f"  [corrupt] {rel}: {why}", file=sys.stderr)
+            sys.exit("*** 存在损坏分片 (多为传输截断), 请重传这些文件后再跑; "
+                     "确需跳过体检用 --skip-footer-check ***")
 
     base_urls = [f"http://{args.host}:{args.base_port + i}"
                  for i in range(args.num_instances)]
@@ -641,17 +675,29 @@ def main():
                     # 原地模式不动源文件, 直接记录跳过
                     tqdm.write(f"  [skip] {rel} 处理失败: {e}, 源文件未修改")
                     skipped_files.append(rel)
-                else:
-                    # 分片损坏/读取失败 -> 拷贝原始分片到备份目录兜底,
-                    # 保证输出目录完整, 不中断整体流程
-                    tqdm.write(f"  [skip] {rel} 处理失败: {e}, 拷贝原始分片兜底")
-                    try:
-                        os.makedirs(os.path.dirname(dst), exist_ok=True)
-                        shutil.copy2(src, dst)
-                        copied_files.append(rel)
-                    except OSError as ce:
-                        tqdm.write(f"  [skip] {rel} 兜底拷贝也失败: {ce}")
-                        skipped_files.append(rel)
+                    continue
+                # 源分片自身不可读(损坏/传输截断)时不做兜底拷贝,
+                # 否则坏数据混进输出目录会被下游当成正常分片
+                try:
+                    pq.read_metadata(src)
+                    src_readable = True
+                except Exception:  # noqa: BLE001
+                    src_readable = False
+                if not src_readable:
+                    tqdm.write(f"  [skip] {rel} 源分片损坏(footer 不可读), "
+                               f"未拷贝进输出, 请重传源文件后 --resume")
+                    skipped_files.append(rel)
+                    continue
+                # 教师/网络等处理失败但源完好 -> 拷贝原始分片兜底,
+                # 保证输出目录完整, 不中断整体流程
+                tqdm.write(f"  [skip] {rel} 处理失败: {e}, 拷贝原始分片兜底")
+                try:
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    shutil.copy2(src, dst)
+                    copied_files.append(rel)
+                except OSError as ce:
+                    tqdm.write(f"  [skip] {rel} 兜底拷贝也失败: {ce}")
+                    skipped_files.append(rel)
                 continue
             dt = time.time() - t0
             total_files += 1
