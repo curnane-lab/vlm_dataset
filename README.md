@@ -209,3 +209,9 @@ pipeline/
 ```
 
 冒烟示例: `python3 pipeline/distill_qa.py --data-root <数据根> --manifest manifests/dataset_manifest_smoke.json --output-root /tmp/smoke --max-rows 20 --num-instances 3 --base-port 30000 --model mineru-vlm`
+
+评测环境文档:
+
+- `docs/omnidocbench_npu_eval_guide.md` — OmniDocBench v1.6 在 NPU 上的端到端
+  评测环境配置指南 (推理侧 vlm-server + two-step, 评测侧 odb_venv/py3.10,
+  CDM 渲染栈 shim 方案, 评测仓 spawn 补丁, 复测成绩 95.24 vs 论文 95.69)
