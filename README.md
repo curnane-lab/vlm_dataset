@@ -78,6 +78,21 @@ MinerU2.5-Pro 是文档解析专用 VLM(整页/块图 → MD/HTML/LaTeX,不支�
 | **holdout** | 本轮不刷: QA 类 + grounding | 7 | 94 | **1,630,433** | 36.4% |
 | 合计 | | 18 | 959 | **4,478,676** | 100% |
 
+### 教师生成策略 (双轨, 均为 MinerU 官方机制, 框架零改动)
+
+| 档位 | 教师方式 | 框架对应 | 说明 |
+|---|---|---|---|
+| tier1 整页 | two-step 两阶段: VLM 版面检测 → 按 bbox 裁块 → 分类型识别 | `effort=xhigh` 原生路径 (`aio_two_step_extract`) | 与 OmniDocBench 评测同源 (复测 95.24) |
+| tier2/3 crop | 整图直连分类型识别 (equation / table / text prompt) | `effort=high` hybrid 的退化: 外部供块 = 整图 `[0,0,1,1]` (`aio_batch_content_extract`) | crop 图本身就是已裁好的块, 版面检测对它是离分布输入 |
+
+- **crop 不做版面检测的依据** (tier2 1% 真实样本实测): 小 crop 上版面检测会出
+  畸形 bbox (`Invalid bbox`)、臆造体系外类别 (`text_caption`)、块碎裂、误判
+  image 导致空答案; 改直连后 **19,249 行 0 失败**, 且公式结构完整度更好
+- crop 直连与 two-step 第二阶段共用同一 prompt 表/采样参数/后处理链
+  (公式定界符规范化、OTSL→HTML); 直连空结果自动回退 two-step 裁块兜底
+- 实测吞吐 (3x910B3, 每实例 8 并发): 公式类 16-25 行/s, 表格类 ~2.5 行/s
+  (表格 HTML 输出长, 是 tier2 全量的耗时大头)
+
 ### tier1 — 文档页面解析(890,447 行)
 
 | 数据集 | 分片 | 行数 | 说明 |
@@ -166,11 +181,12 @@ python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
   原始 / tier1 刷后 / tier1+2 刷后之间切换做 ablation。
 - regenerate 管线(`pipeline/distill_qa.py`, NPU 训练机侧): parquet 流式
   读取(`iter_batches` 块读, 不整片进内存) → 图片内存解码直送教师池
-  (MinerU2.5-Pro two-step 两阶段: 版面检测 + 裁块识别, 与 OmniDocBench
-  评测同源) → 重写备份 parquet。**无任何中间产物落盘**(不生成 PDF/中间
-  markdown/html 文件);数据集按类型自动路由序列化(tier1→markdown,
-  tier2/3→crop 块内容直拼, holdout 自动 skip);支持断点续跑(`--resume`)、
-  缺失目录自动 skip;`--in-place` 可改原地刷回(原子替换, 牺牲 ablation 换磁盘)。
+  (MinerU2.5-Pro, 双轨策略见第 4 节: tier1 整页 two-step 两阶段,
+  tier2/3 crop 整图直连识别, 与 OmniDocBench 评测同源) → 重写备份 parquet。
+  **无任何中间产物落盘**(不生成 PDF/中间 markdown/html 文件);数据集按类型
+  自动路由序列化(tier1→markdown, tier2/3→crop 分类型识别, holdout 自动
+  skip);支持断点续跑(`--resume`)、缺失目录自动 skip;`--in-place` 可改
+  原地刷回(原子替换, 牺牲 ablation 换磁盘)。
 
 ## 6. 已知问题
 
