@@ -29,8 +29,9 @@ distill_qa.py — 基于 vLLM 教师模型的 VLM QA 数据蒸馏脚本 (Linux)
                            table→HTML、paratext 丢弃)
                grounding : HRD grounding, 序列化为 JSON [{class,text,bbox}]
                crop      : 识别级 crop (UniMER/MathWriting/CASIA/FinTabNet/
-                           PubTables/场景文字识别), 直接拼接块识别内容
-                           (LaTeX/文本/HTML)
+                           PubTables/场景文字识别), 整图跳过版面检测, 直送
+                           分类型识别 prompt (equation/table/text), 空结果
+                           时回退 two-step 裁块路径
                skip      : holdout 档 (tinychart + FineVision QA/KIE +
                            HRD grounding), 本轮跳过不蒸馏
              线程模型: 每个工作线程绑定一个实例 (round-robin), 持有持久的
@@ -209,6 +210,16 @@ def route_dataset(name: str) -> str:
     return "markdown"
 
 
+def crop_block_type(name: str) -> str:
+    """crop 路由数据集的整图识别类型 (MinerU 内置分类型 prompt)。"""
+    n = name.lower()
+    if any(k in n for k in ("unimer", "mathwriting", "formula")):
+        return "equation"
+    if any(k in n for k in ("fintabnet", "pubtables")):
+        return "table"
+    return "text"  # casia 手写行 / scene_text_recognition 等
+
+
 _MD_SKIP_TYPES = {"header", "footer", "page_number", "page_footnote",
                   "aside_text", "image", "chart", "image_block"}
 
@@ -304,10 +315,20 @@ class TwoStepTeacherPool:
         return loop.run_until_complete(
             client.aio_batch_two_step_extract(pil_images))
 
+    def extract_typed(self, pil_images, block_type):
+        """crop 直连: 整图当整块, 跳过版面检测, 直送分类型识别 prompt。
+        返回 list[ExtractStr|None]。小 crop 图做版面检测是离分布用法
+        (实测乱出框/臆造类型), 直连又快又稳。"""
+        loop, client = self._thread_ctx()
+        return loop.run_until_complete(
+            client.aio_batch_content_extract(pil_images, block_type))
 
-def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str):
-    """two-step 版单行蒸馏: 忽略对话 prompt, 对全行图片跑两阶段抽取,
-    按路由序列化后替换所有 assistant 轮次。失败时返回原始 messages。"""
+
+def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str,
+                         crop_type: str = "text"):
+    """two-step 版单行蒸馏: 忽略对话 prompt, 对全行图片跑抽取,
+    按路由序列化后替换所有 assistant 轮次。失败时返回原始 messages。
+    crop 路由走整图直连识别 (含 two-step 兜底)。"""
     import io
     from PIL import Image
 
@@ -318,9 +339,24 @@ def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str):
                       for im in raw_images]
         if not pil_images:
             raise ValueError("row has no images")
-        results = pool.extract(pil_images)
-        render = _RENDERERS[route]
-        answer = "\n\n".join(render(r) for r in results).strip()
+        if route == "crop":
+            outs = pool.extract_typed(pil_images, crop_type)
+            parts = []
+            for o in outs:
+                c = (str(o) if o else "").strip()
+                if c:
+                    parts.append(strip_math_delims(c)
+                                 if crop_type == "equation" else c)
+            answer = "\n".join(parts).strip()
+            if not answer:
+                # 直连偶发空结果 -> 回退 two-step 裁块路径再试一次
+                results = pool.extract(pil_images)
+                answer = "\n\n".join(render_blocks_crop(r)
+                                     for r in results).strip()
+        else:
+            results = pool.extract(pil_images)
+            render = _RENDERERS[route]
+            answer = "\n\n".join(render(r) for r in results).strip()
         if not answer:
             raise ValueError("two-step produced empty answer")
         for i, m in enumerate(messages):
@@ -358,7 +394,7 @@ def distill_row(row, pool: TeacherPool):
 
 def process_file(src_path, dst_path, pool, max_rows=None,
                  teacher_mode="single", route=None, in_place=False,
-                 chunk_rows=500):
+                 chunk_rows=500, crop_type="text"):
     """流式处理一个分片: iter_batches 按块读取 -> 线程池蒸馏 ->
     ParquetWriter 增量写出。避免 UniMER 单分片 ~33 万行带图一次性进内存
     (数据集文档明确禁止 read_table 整片读取), 同时把在途 future 数
@@ -366,7 +402,8 @@ def process_file(src_path, dst_path, pool, max_rows=None,
     import pyarrow as pa
 
     if teacher_mode == "two-step":
-        row_fn = lambda row: distill_row_two_step(row, pool, route)  # noqa: E731
+        row_fn = lambda row: distill_row_two_step(row, pool, route,  # noqa: E731
+                                                  crop_type)
     else:
         row_fn = lambda row: distill_row(row, pool)  # noqa: E731
 
@@ -549,14 +586,17 @@ def main():
         if args.datasets and name not in args.datasets:
             continue
         route = None
+        crop_type = "text"
         if args.teacher_mode == "two-step":
             route = route_dataset(name)
             if route == "skip":
-                print(f"\n=== {name}: QA 类数据集, two-step 答非所问, "
-                      f"本轮跳过 ===")
+                print(f"\n=== {name}: holdout 档数据集, 本轮跳过 ===")
                 skipped_datasets.append(name)
                 continue
-            print(f"\n=== {name}: 路由 {route} ===")
+            if route == "crop":
+                crop_type = crop_block_type(name)
+            print(f"\n=== {name}: 路由 {route}"
+                  f"{f' (整图 {crop_type} 直连)' if route == 'crop' else ''} ===")
         files = ds.get("files") or []
         if args.max_files:
             files = files[:args.max_files]
@@ -594,7 +634,8 @@ def main():
                 n, fail = process_file(src, dst, pool, args.max_rows,
                                        args.teacher_mode, route,
                                        in_place=args.in_place,
-                                       chunk_rows=args.chunk_rows)
+                                       chunk_rows=args.chunk_rows,
+                                       crop_type=crop_type)
             except Exception as e:  # noqa: BLE001
                 if args.in_place:
                     # 原地模式不动源文件, 直接记录跳过
