@@ -94,6 +94,7 @@ def main():
     out_manifest["datasets"] = []
 
     grand_src = grand_kept = 0
+    bad_files = []
     for ds in manifest["datasets"]:
         name = ds["name"]
         if args.datasets and name not in args.datasets:
@@ -115,9 +116,19 @@ def main():
             dst = os.path.join(args.output_root, rel)
             if not os.path.exists(src):
                 print(f"  [skip] missing {src}", file=sys.stderr)
+                bad_files.append(rel + " (缺失)")
                 continue
-            total, kept = sample_file(src, dst, sampler, rel,
-                                      args.chunk_rows)
+            try:
+                total, kept = sample_file(src, dst, sampler, rel,
+                                          args.chunk_rows)
+            except Exception as e:  # noqa: BLE001
+                # 分片损坏(如拷贝截断): 删掉半截输出, 记录后继续,
+                # 不中断整体采样, manifest 照写
+                print(f"  [skip] {rel} 采样失败: {e}", file=sys.stderr)
+                if os.path.exists(dst):
+                    os.remove(dst)
+                bad_files.append(rel + f" (损坏: {e})")
+                continue
             ds_src += total
             ds_kept += kept
             entry = dict(finfo)
@@ -131,7 +142,6 @@ def main():
         grand_kept += ds_kept
         print(f"=== {name}: {ds_src} -> {ds_kept} 行 "
               f"({len(out_ds['files'])} 分片) ===")
-
     mpath = os.path.join(args.output_root, "dataset_manifest.json")
     os.makedirs(args.output_root, exist_ok=True)
     with open(mpath, "w", encoding="utf-8") as f:
@@ -139,6 +149,12 @@ def main():
     print(f"\n完成: {grand_src} -> {grand_kept} 行 "
           f"(实际比例 {grand_kept / max(grand_src, 1):.4f})")
     print(f"新 manifest: {mpath}")
+    if bad_files:
+        print(f"!! 跳过 {len(bad_files)} 个坏分片 (未收录进新 manifest):",
+              file=sys.stderr)
+        for b in bad_files:
+            print(f"   {b}", file=sys.stderr)
+        print("   源数据修复后重跑采样即可补齐", file=sys.stderr)
     print(f"后续: python3 {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'distill_qa.py')} "
           f"--data-root {args.output_root} --in-place --resume ...")
 
