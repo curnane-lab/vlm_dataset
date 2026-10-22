@@ -218,30 +218,35 @@ def main():
             # 图片抽样完整性
             if src_pf and args.check_images:
                 d_first = next(pq.ParquetFile(dst).iter_batches(
-                    batch_size=args.check_images, columns=["messages", "images"]))
-                s_first = next(src_pf.iter_batches(
-                    batch_size=args.check_images, columns=["images"]))
-                d_rows, s_rows = d_first.to_pylist(), s_first.to_pylist()
-                for i in range(min(len(d_rows), len(s_rows))):
-                    d_imgs = d_rows[i]["images"] or []
-                    s_imgs = s_rows[i]["images"] or []
-                    n_ph = sum(m["content"].count("<image>")
-                               for m in d_rows[i]["messages"]
-                               if m["role"] == "user")
-                    if n_ph != len(d_imgs):
-                        st["image_tampered"] += 1
-                        st["severe_rows"] += 1
-                        continue
-                    if len(d_imgs) != len(s_imgs):
-                        st["image_tampered"] += 1
-                        st["severe_rows"] += 1
-                        continue
-                    for di, si in zip(d_imgs, s_imgs):
-                        if hashlib.sha256(di["bytes"]).hexdigest() != \
-                                hashlib.sha256(si["bytes"]).hexdigest():
+                    batch_size=args.check_images,
+                    columns=["messages", "images"]), None)
+                s_first = (next(src_pf.iter_batches(
+                    batch_size=args.check_images,
+                    columns=["images"]), None)
+                    if d_first is not None else None)
+                if d_first is not None and s_first is not None:
+                    d_rows = d_first.to_pylist()
+                    s_rows = s_first.to_pylist()
+                    for i in range(min(len(d_rows), len(s_rows))):
+                        d_imgs = d_rows[i]["images"] or []
+                        s_imgs = s_rows[i]["images"] or []
+                        n_ph = sum(m["content"].count("<image>")
+                                   for m in d_rows[i]["messages"]
+                                   if m["role"] == "user")
+                        if n_ph != len(d_imgs):
                             st["image_tampered"] += 1
                             st["severe_rows"] += 1
-                            break
+                            continue
+                        if len(d_imgs) != len(s_imgs):
+                            st["image_tampered"] += 1
+                            st["severe_rows"] += 1
+                            continue
+                        for di, si in zip(d_imgs, s_imgs):
+                            if hashlib.sha256(di["bytes"]).hexdigest() != \
+                                    hashlib.sha256(si["bytes"]).hexdigest():
+                                st["image_tampered"] += 1
+                                st["severe_rows"] += 1
+                                break
 
         n = max(st["rows"], 1)
         severe_n = st["severe_rows"]
