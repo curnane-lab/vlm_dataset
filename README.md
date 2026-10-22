@@ -195,7 +195,7 @@ python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
 | olmOCR-mix-1025_parsing_vlm 未登记进 manifest | 脚本默认忽略(64 分片 / 261,988 行 / ~280 GiB) | 启用前补登记;另有 222 个源行因超长页渲染失败被确定性 drop(见 render_fail_ids.json) |
 | CASIA-HMDB2-line assistant 中文乱码 | 答案不可用 | 源数据即如此;tier3 regenerate 可修复 |
 | 数据在移动硬盘 F: | 盘符随机器变化 | 训练机上以 `data_root` 参数/manifest 字段为准 |
-| **传输事故记录**(2026-10-21): 目标机 `/data/omnidoc_vlm` 副本中 `PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00000-of-00048.parquet` footer 损坏(`magic bytes not found`,拷贝截断所致;F: 源盘同分片经全量扫描完好,10,894 行 / 338.2 MiB,同批其余 958 分片亦全部完好) | 旧版脚本跑到该片才崩;旧版备份模式还会把坏片兜底拷进输出 | 重传该分片(可能不止一片受损,建议对目标机副本 959 分片做一次全量 footer 体检);`0323518` 起预检带 footer 体检可启动即点名,`0b550ea` 起采样对坏片容错 |
+| **传输事故记录**(2026-10-21): 目标机 `/data/omnidoc_vlm` 副本中 `PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00000-of-00048.parquet` footer 损坏(`magic bytes not found`,拷贝截断所致;F: 源盘同分片经全量扫描完好,10,894 行 / 338.2 MiB,同批其余 958 分片亦全部完好) | 旧版脚本跑到该片才崩;旧版备份模式还会把坏片兜底拷进输出 | 重传该分片(可能不止一片受损,建议用 `pipeline/footer_check.py` 对目标机副本 959 分片做一次全量体检);`0323518` 起预检带 footer 体检可启动即点名,`0b550ea` 起采样对坏片容错 |
 
 ## 7. 仓库内容
 
@@ -222,6 +222,9 @@ pipeline/
 │                          # 支持原地刷回(--in-place)与备份两种输出, 断点续跑
 ├── sample_dataset.py      # 确定性下采样预处理(crc32 哈希选行): 源数据只读,
 │                          # 产物为独立小数据集 + 行数修正后的 manifest, 先导试验用
+├── footer_check.py        # 分片体检: manifest 驱动, footer/行数快检(默认) +
+│                          # --full-read 数据区深检, 传输后/蒸馏前用, 异常即退出码 1
+│                          # 并支持 --report 落 JSON 坏片清单(供重传脚本用)
 └── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
 ```
 
