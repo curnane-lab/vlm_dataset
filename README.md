@@ -225,6 +225,9 @@ pipeline/
 ├── footer_check.py        # 分片体检: manifest 驱动, footer/行数快检(默认) +
 │                          # --full-read 数据区深检, 传输后/蒸馏前用, 异常即退出码 1
 │                          # 并支持 --report 落 JSON 坏片清单(供重传脚本用)
+├── qc_distilled.py        # 蒸馏产物质检: 按路由校验 response 契约(equation/table/
+│                          # text/markdown), 查空答案/token泄漏/重复循环/未刷新兜底,
+│                          # 对照源数据算刷新率 + user/图片完整性, 阈值化退出码
 └── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
 ```
 
