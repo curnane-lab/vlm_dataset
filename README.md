@@ -237,17 +237,18 @@ pipeline/
 
 ```
 verl/
-├── run_verl_sft.sh          # ModelArts 单/多节点 SFT（A3 910C，每节点 16 die）
-└── split_vlm_manifest.py    # manifest 驱动的 train/val parquet 切分
+├── run_verl_sft.sh                 # ModelArts SFT 精简启动（packed 默认，单/多节点）
+└── split_tools/
+    ├── split_vlm_manifest.py       # manifest 驱动的 train/val parquet 切分
+    └── plot_metrics.py             # 从训练日志画 loss/grad_norm/lr/mfu
 ```
 
-ModelArts 上的用法:
+ModelArts 上的用法。平台只需要这三个路径；`DATA_PATH` 下要有 `*.parquet` 和 `manifest.jsonl`：
 
 ```bash
 # 假设挂载路径为 /verl_data
 MODEL_PATH=/verl_data/models/Qwen3.6-35B-A3B \
-DATA_ROOT=/verl_data/data/Qwen3.6_eval \
-WORK_DIR=/verl_data/sft_smoke \
+DATA_PATH=/verl_data/data/Qwen3.6_eval \
 OUTPUT_DIR=/verl_data/output \
 bash run_verl_sft.sh
 ```
