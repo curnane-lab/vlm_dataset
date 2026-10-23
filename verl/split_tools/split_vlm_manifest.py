@@ -7,9 +7,11 @@ files, and emits matching manifests plus verl file-list JSON files.
 """
 
 import argparse
+import glob
 import hashlib
 import json
 import os
+import pyarrow.parquet as pq
 import sys
 from pathlib import Path
 
@@ -88,6 +90,27 @@ def write_manifest(source_manifest: dict, data_root: Path, split_counts: dict, o
     return manifest
 
 
+def build_flat_manifest(data_root: Path) -> dict:
+    """Auto-build a manifest from all *.parquet files under data_root."""
+    parquet_files = sorted(glob.glob(str(data_root / "**" / "*.parquet"), recursive=True))
+    if not parquet_files:
+        raise SystemExit(f"no parquet files found under {data_root}")
+    datasets = []
+    for f in parquet_files:
+        path = Path(f)
+        name = path.stem
+        rows = pq.ParquetFile(path).metadata.num_rows
+        datasets.append({
+            "name": name,
+            "schema_adapter": "qwen_vl",
+            "weight": 1.0,
+            "total_rows": rows,
+            "num_files": 1,
+            "files": [{"path": path.relative_to(data_root).as_posix(), "rows": rows, "schema_adapter": "qwen_vl"}],
+        })
+    return {"version": 1, "data_root": str(data_root), "datasets": datasets}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", required=True, type=Path)
@@ -104,8 +127,12 @@ def main() -> int:
         raise SystemExit("--val-ratio must be in (0, 1)")
     if args.output_root.resolve() == args.data_root.resolve():
         raise SystemExit("--output-root must differ from --data-root")
-    with args.manifest.open(encoding="utf-8") as handle:
-        source_manifest = json.load(handle)
+    if args.manifest.suffix == ".jsonl" or not args.manifest.exists():
+        print(f"[INFO] Building flat-parquet manifest from {args.data_root}")
+        source_manifest = build_flat_manifest(args.data_root)
+    else:
+        with args.manifest.open(encoding="utf-8") as handle:
+            source_manifest = json.load(handle)
     val_ratio = round(args.val_ratio * 10000)
     splitter = ShardSplitter(args.chunk_rows)
 
