@@ -233,6 +233,24 @@ pipeline/
 
 冒烟示例: `python3 pipeline/distill_qa.py --data-root <数据根> --manifest manifests/dataset_manifest_smoke.json --output-root /tmp/smoke --max-rows 20 --num-instances 3 --base-port 30000 --model mineru-vlm`
 
+`verl/` 为 NPU 上用 verl 拉起 SFT 的脚本:
+
+```
+verl/
+└── run_evalmix_verl_sft_smoke.sh   # 16 卡 torchrun 拉起 verl.trainer.sft_trainer, Qwen3.6 evalmix 100 step smoke
+```
+
+ModelArts 上的用法:
+
+```bash
+# 假设挂载路径为 /mnt/sfs
+MODEL_PATH=/mnt/sfs/models/Qwen3.6-35B-A3B \
+DATA_ROOT=/mnt/sfs/data/Qwen3.6_eval \
+WORK_DIR=/mnt/sfs/sft_smoke \
+OUTPUT_DIR=/mnt/sfs/output \
+bash run_modelarts_sft.sh
+```
+
 评测环境文档:
 
 - `docs/omnidocbench_npu_eval_guide.md` — OmniDocBench v1.6 在 NPU 上的端到端
