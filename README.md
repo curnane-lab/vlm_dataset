@@ -248,7 +248,7 @@ MODEL_PATH=/verl_data/models/Qwen3.6-35B-A3B \
 DATA_ROOT=/verl_data/data/Qwen3.6_eval \
 WORK_DIR=/verl_data/sft_smoke \
 OUTPUT_DIR=/verl_data/output \
-bash run_modelarts_sft.sh
+bash run_verl_sft.sh
 ```
 
 评测环境文档:
