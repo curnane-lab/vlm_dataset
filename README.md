@@ -243,11 +243,11 @@ verl/
 ModelArts 上的用法:
 
 ```bash
-# 假设挂载路径为 /mnt/sfs
-MODEL_PATH=/mnt/sfs/models/Qwen3.6-35B-A3B \
-DATA_ROOT=/mnt/sfs/data/Qwen3.6_eval \
-WORK_DIR=/mnt/sfs/sft_smoke \
-OUTPUT_DIR=/mnt/sfs/output \
+# 假设挂载路径为 /verl_data
+MODEL_PATH=/verl_data/models/Qwen3.6-35B-A3B \
+DATA_ROOT=/verl_data/data/Qwen3.6_eval \
+WORK_DIR=/verl_data/sft_smoke \
+OUTPUT_DIR=/verl_data/output \
 bash run_modelarts_sft.sh
 ```
 
