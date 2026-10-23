@@ -237,7 +237,8 @@ pipeline/
 
 ```
 verl/
-└── run_evalmix_verl_sft_smoke.sh   # 16 卡 torchrun 拉起 verl.trainer.sft_trainer, Qwen3.6 evalmix 100 step smoke
+├── run_verl_sft.sh          # ModelArts 单/多节点 SFT（A3 910C，每节点 16 die）
+└── split_vlm_manifest.py    # manifest 驱动的 train/val parquet 切分
 ```
 
 ModelArts 上的用法:
