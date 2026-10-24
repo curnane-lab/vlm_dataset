@@ -243,14 +243,36 @@ verl/
     └── plot_metrics.py             # 从训练日志画 loss/grad_norm/lr/mfu
 ```
 
-ModelArts 上的用法。平台只需要这三个路径；`DATA_PATH` 下要有 `*.parquet` 和 `manifest.jsonl`：
+ModelArts 上的标准启动命令。必填输入是 `MODEL_PATH`、`DATA_PATH`、`OUTPUT_DIR`；`DATA_PATH` 下要有 `*.parquet`（`manifest.jsonl` 不存在时按 parquet 自动建清单）。节点参数是 `NNODES`、`NODE_RANK`、`NPROC_PER_NODE`、`MASTER_ADDR`、`MASTER_PORT`、`RDZV_ID`。下面按挂载路径 `/verl_data` 举例：
 
 ```bash
-# 假设挂载路径为 /verl_data
-MODEL_PATH=/verl_data/models/Qwen3.6-35B-A3B \
-DATA_PATH=/verl_data/data/Qwen3.6_eval \
-OUTPUT_DIR=/verl_data/output \
-bash run_verl_sft.sh
+export MODEL_PATH=/verl_data/models/Qwen3.6-35B-A3B
+export DATA_PATH=/verl_data/omnidoc_tier2_s20
+export OUTPUT_DIR=/verl_data/sft_smoke/output
+
+export NNODES=1
+export NODE_RANK=0
+export NPROC_PER_NODE=16
+export MASTER_ADDR=127.0.0.1
+export MASTER_PORT=29500
+export RDZV_ID=qwen36_sft_1node
+export NPU_DEVICES=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+
+export MAX_TOKEN_LEN=8192
+export MICRO_BATCH_SIZE=4
+export TRAIN_BATCH_SIZE=64
+export TRAIN_STEPS=1500
+export SAVE_FREQ=1000
+export TRAIN_MAX_SAMPLES=-1
+export VAL_MAX_SAMPLES=64
+export USE_PACKED=true
+export RESUME_MODE=disable
+export HCCL_NPU_SOCKET_PORT_RANGE=30000-30200
+
+bash verl/run_verl_sft.sh \
+  engine.param_offload=true \
+  engine.optimizer_offload=true \
+  engine.offload_policy=false
 ```
 
 评测环境文档:
