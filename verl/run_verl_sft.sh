@@ -38,6 +38,7 @@ MICRO_BATCH_SIZE=${MICRO_BATCH_SIZE:-1}
 MAX_TOKEN_LEN=${MAX_TOKEN_LEN:-8192}         # packed: max tokens/GPU; right-pad: max seq len
 MAX_LENGTH=${MAX_LENGTH:-16384}              # right-padding only (ignored in packed mode)
 TRAIN_STEPS=${TRAIN_STEPS:-100}
+SAVE_FREQ=${SAVE_FREQ:-${TRAIN_STEPS}}
 TRAIN_MAX_SAMPLES=${TRAIN_MAX_SAMPLES:--1}
 RESUME_MODE=${RESUME_MODE:-disable}
 VAL_RATIO=${VAL_RATIO:-0.1}
@@ -169,7 +170,7 @@ torchrun \
     trainer.experiment_name=qwen36-35b-a3b-sft \
     trainer.total_training_steps="${TRAIN_STEPS}" \
     trainer.total_epochs=100 \
-    trainer.save_freq="${TRAIN_STEPS}" \
+    trainer.save_freq="${SAVE_FREQ}" \
     trainer.test_freq=-1 \
     trainer.max_ckpt_to_keep=1 \
     trainer.resume_mode="${RESUME_MODE}" \
