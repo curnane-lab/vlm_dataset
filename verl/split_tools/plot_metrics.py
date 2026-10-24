@@ -5,6 +5,7 @@ import argparse
 import math
 import re
 import sys
+from collections import deque
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -105,6 +106,72 @@ def draw_curve(draw, data, x0, y0, w, h, color, label, font, log_scale=False):
     draw.text((x0 + w // 2 - len(label) * 4, y0 - 20), label, fill=(0, 0, 0), font=font)
 
 
+def moving_average(data, window):
+    if window <= 1 or not data:
+        return []
+    values = deque()
+    result = []
+    total = 0.0
+    for step, value in data:
+        total += value
+        values.append(value)
+        if len(values) > window:
+            total -= values.popleft()
+        result.append((step, total / len(values)))
+    return result
+
+
+def draw_curve_with_smooth(draw, data, x0, y0, w, h, color, label, font, smooth_window=21):
+    if not data:
+        return
+    values = [v for _, v in data]
+    smoothed = moving_average(data, smooth_window)
+    scale_values = values + [v for _, v in smoothed]
+    vmin, vmax = min(scale_values), max(scale_values)
+    if vmax - vmin < 1e-12:
+        margin = max(abs(vmin) * 0.1, 1e-12)
+        vmin -= margin
+        vmax += margin
+    margin = (vmax - vmin) * 0.08
+    vmin -= margin
+    vmax += margin
+    steps = [s for s, _ in data]
+    smin, smax = min(steps), max(steps)
+    if smax - smin < 1:
+        smax = smin + 1
+
+    draw.line([(x0, y0), (x0, y0 + h), (x0 + w, y0 + h)], fill=(200, 200, 200), width=1)
+    for i in range(1, 5):
+        gy = y0 + h * i // 5
+        draw.line([(x0, gy), (x0 + w, gy)], fill=(230, 230, 230), width=1)
+
+    def point(step, value):
+        px = x0 + int(w * (step - smin) / (smax - smin))
+        py = y0 + h - int(h * (value - vmin) / (vmax - vmin))
+        return px, py
+
+    raw_points = [point(step, value) for step, value in data]
+    smooth_points = [point(step, value) for step, value in smoothed]
+    if len(raw_points) > 1:
+        draw.line(raw_points, fill=(190, 190, 190), width=1)
+    if len(smooth_points) > 1:
+        draw.line(smooth_points, fill=color, width=3)
+
+    for i in range(5):
+        val = vmin + (vmax - vmin) * (5 - i) / 5
+        gy = y0 + h * i // 5
+        label_text = f"{val:.2e}" if abs(val) < 1e-3 else (f"{val:.4f}" if abs(val) < 1 else f"{val:.2f}")
+        draw.text((x0 - 8 - len(label_text) * 7, gy - 7), label_text, fill=(100, 100, 100), font=font)
+
+    for frac in [0, 0.25, 0.5, 0.75, 1.0]:
+        step = int(smin + (smax - smin) * frac)
+        px = x0 + int(w * frac)
+        draw.text((px - 10, y0 + h + 5), str(step), fill=(100, 100, 100), font=font)
+
+    draw.text((x0 + 8, y0 + 8), f"gray: raw, {color}: MA-{smooth_window}", fill=(80, 80, 80), font=font)
+    draw.text((x0 + w // 2 - len(label) * 4, y0 - 20), label, fill=(0, 0, 0), font=font)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Plot training metrics from verl SFT log")
     parser.add_argument("--log", required=True, help="Path to training log file")
@@ -139,10 +206,10 @@ def main():
     panel_h = (H - 3 * margin_y) // 2 - 20
 
     configs = [
-        ("loss", (255, 60, 60), False),
-        ("grad_norm", (60, 60, 255), False),
-        ("lr", (60, 160, 60), False),
-        ("mfu", (200, 120, 0), False),
+        ("loss", (255, 60, 60), 21),
+        ("grad_norm", (60, 60, 255), 21),
+        ("lr", (60, 160, 60), 21),
+        ("mfu", (200, 120, 0), 21),
     ]
 
     positions = [
@@ -152,8 +219,19 @@ def main():
         (margin_x * 2 + panel_w, margin_y * 2 + panel_h),
     ]
 
-    for (name, color, log_scale), (x0, y0) in zip(configs, positions):
-        draw_curve(draw, curves[name], x0, y0, panel_w, panel_h, color, f"train/{name}", font, log_scale)
+    for (name, color, window), (x0, y0) in zip(configs, positions):
+        draw_curve_with_smooth(
+            draw,
+            curves[name],
+            x0,
+            y0,
+            panel_w,
+            panel_h,
+            color,
+            f"train/{name}",
+            font,
+            smooth_window=window,
+        )
 
     img.save(args.output)
     print(f"Saved: {args.output}")
