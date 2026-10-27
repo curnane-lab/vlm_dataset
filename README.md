@@ -231,8 +231,9 @@ pipeline/
 ├── qa_compat_check.py     # Q-A 匹配质检: 通用 VLM 裁判(如 Qwen-VL)看图判
 │                          # (Q,A) 相关性/格式一致性/完整性, 确定性跨分片均布抽样
 │                          # (row-group 粒度取行, 不全量读图), 逐数据集 match 率门禁
-├── check_qa_compat.sh     # 一键: 拉起裁判 vLLM 服务(可复用已有) -> 等就绪 ->
-│                          # 跑 qa_compat_check.py -> 按需关停 (trap 清理)
+├── check_qa_compat.sh     # 一键: 拉起裁判 vLLM 服务(与 start_teachers.sh 同源:
+│                          # mineru-kit vlm-server, 服务器已验证; 已在跑则复用) ->
+│                          # 等就绪 -> 跑 qa_compat_check.py -> 按需关停 (trap 清理)
 └── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
 ```
 
