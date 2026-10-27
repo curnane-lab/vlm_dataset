@@ -228,6 +228,11 @@ pipeline/
 ├── qc_distilled.py        # 蒸馏产物质检: 按路由校验 response 契约(equation/table/
 │                          # text/markdown), 查空答案/token泄漏/重复循环/未刷新兜底,
 │                          # 对照源数据算刷新率 + user/图片完整性, 阈值化退出码
+├── qa_compat_check.py     # Q-A 匹配质检: 通用 VLM 裁判(如 Qwen-VL)看图判
+│                          # (Q,A) 相关性/格式一致性/完整性, 确定性跨分片均布抽样
+│                          # (row-group 粒度取行, 不全量读图), 逐数据集 match 率门禁
+├── check_qa_compat.sh     # 一键: 拉起裁判 vLLM 服务(可复用已有) -> 等就绪 ->
+│                          # 跑 qa_compat_check.py -> 按需关停 (trap 清理)
 └── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
 ```
 
