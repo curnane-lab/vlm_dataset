@@ -22,7 +22,10 @@
 #   HF_OVERRIDES=""    需要时传 '{"tie_word_embeddings":true}' 之类
 #   PER_DATASET=200    每数据集抽样行数
 #   WORKERS=16         裁判并发
-#   MIN_MATCH_RATE=0.9 匹配率门禁 (低于则退出码 1)
+#   MIN_MATCH_RATE=0.9 匹配率门禁 (低于则退出码 1; 仅统计模式)
+#   FIX=0              1=修复模式: 全量逐行裁判, 不匹配行改写 Q 对齐 A
+#                      (A 为 MinerU 蒸馏产物, 只读不动), 原地原子写回,
+#                      .qafix_done 断点续跑 (仅用于蒸馏副本, 不可逆!)
 #   REPORT=<DATA_ROOT>/qa_compat_report.json
 #   EXTRA_ARGS=""      透传给启动命令的额外参数
 #   KEEP_SERVER=0      1=检查完保留服务 (复跑省时)
@@ -41,6 +44,7 @@ HF_OVERRIDES=${HF_OVERRIDES:-}
 PER_DATASET=${PER_DATASET:-200}
 WORKERS=${WORKERS:-16}
 MIN_MATCH_RATE=${MIN_MATCH_RATE:-0.9}
+FIX=${FIX:-0}
 REPORT=${REPORT:-"$DATA_ROOT/qa_compat_report.json"}
 EXTRA_ARGS=${EXTRA_ARGS:-}
 KEEP_SERVER=${KEEP_SERVER:-0}
@@ -63,7 +67,11 @@ echo "Q-A 匹配质检"
 echo "裁判模型:   $MODEL_DIR ($SERVED_NAME, $LAUNCHER)"
 echo "数据:       $DATA_ROOT"
 echo "抽样:       每数据集 $PER_DATASET 行, 并发 $WORKERS"
-echo "门禁:       match >= $MIN_MATCH_RATE"
+if [ "$FIX" = "1" ]; then
+    echo "模式:       修复 (全量逐行裁判, 不匹配行改写 Q 写回; A 不动)"
+else
+    echo "模式:       仅统计 (门禁 match >= $MIN_MATCH_RATE)"
+fi
 echo "=============================================="
 
 # ---------- Step 0: 服务拉起/复用 (与 start_teachers.sh 同机制) ----------
@@ -112,16 +120,27 @@ else
     echo "[step0] 服务就绪"
 fi
 
-# ---------- Step 1: 抽样裁判 ----------
-echo "[step1] 抽样裁判检查 ..."
-python3 qa_compat_check.py \
-    --data-root "$DATA_ROOT" \
-    --model "$SERVED_NAME" \
-    --num-instances 1 --base-port "$PORT" \
-    --per-dataset "$PER_DATASET" \
-    --workers "$WORKERS" \
-    --min-match-rate "$MIN_MATCH_RATE" \
-    --report "$REPORT"
+# ---------- Step 1: 抽样裁判 / 修复 ----------
+if [ "$FIX" = "1" ]; then
+    echo "[step1] 修复模式: 全量逐行裁判 + 改写 Q ..."
+    python3 qa_compat_check.py \
+        --data-root "$DATA_ROOT" \
+        --model "$SERVED_NAME" \
+        --num-instances 1 --base-port "$PORT" \
+        --workers "$WORKERS" \
+        --fix --resume \
+        --report "$REPORT"
+else
+    echo "[step1] 抽样裁判检查 ..."
+    python3 qa_compat_check.py \
+        --data-root "$DATA_ROOT" \
+        --model "$SERVED_NAME" \
+        --num-instances 1 --base-port "$PORT" \
+        --per-dataset "$PER_DATASET" \
+        --workers "$WORKERS" \
+        --min-match-rate "$MIN_MATCH_RATE" \
+        --report "$REPORT"
+fi
 rc=$?
 
 echo ""

@@ -15,12 +15,17 @@ row-group 粒度只取目标行 (避免为抽 200 行全量读图); 同参数重
 空 A 不送裁判, 直接判 mismatch (empty_answer)。
 
 用法:
+  # 只统计 (默认)
   python3 qa_compat_check.py --data-root /data/omnidoc_vlm_regen/tier2 \
       --model qwen-vl --num-instances 1 --base-port 31000 \
       --per-dataset 200 --workers 16 --report qa_compat.json
-通常经 check_qa_compat.sh 一键拉起服务+检查。
+  # 修复模式: 全量逐行裁判, 不匹配行由裁判改写 Q 对齐 A
+  # (A 为 MinerU 蒸馏产物, 只读不动), parquet 原子写回, .qafix_done 断点续跑
+  python3 qa_compat_check.py --data-root ... --fix --resume --workers 16
+通常经 check_qa_compat.sh 一键拉起服务+检查 (FIX=1 开修复)。
 
-退出码: 0 = 全部数据集达标; 1 = 有数据集 match 率低于 --min-match-rate
+退出码: 统计模式 0 = 全部数据集达标; 1 = 有数据集低于 --min-match-rate。
+        修复模式 0 = 全部修复成功; 1 = 存在修复失败/裁判失败率过高。
 依赖: pyarrow, requests; 复用 distill_qa.py 的 TeacherPool /
 build_api_messages / norm_rel_path
 """
@@ -32,6 +37,7 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -59,6 +65,18 @@ JUDGE_TMPL = """# 任务
 
 VERDICT_RE = re.compile(r"\{.*\}", re.DOTALL)
 MAX_IMAGES_PER_ROW = 4  # 裁判每行最多看图数, 控制请求体积
+
+REWRITE_TMPL = """# 任务
+"答案 A"是正确的标准答案, 但"原问题 Q"与 A 不匹配 (原因: {issues})。
+请结合图片改写 Q, 使其成为能自然引出 A 的提问/指令。
+要求: 保持 Q 的原意与语言; 修正与 A 冲突的要求 (如输出格式约定);
+不得引入 A 无法满足的新要求; 不要包含 "<image>" 标记; 只输出改写后的 Q 文本。
+
+# 原问题 Q
+{q}
+
+# 答案 A
+{a}"""
 
 
 def parse_verdict(text):
@@ -152,7 +170,8 @@ def judge_row(row, pool, model_caps):
         return ({"match": False, "issues": ["empty_answer"],
                  "confidence": 1.0}, "empty_answer")
     q_cap, a_cap = model_caps
-    q_disp = q if len(q) <= q_cap else q[:q_cap] + " …(截断)"
+    q_clean = q.replace("<image>", " ").strip()  # 裁判展示剥掉占位符
+    q_disp = q_clean if len(q_clean) <= q_cap else q_clean[:q_cap] + " …(截断)"
     if len(a) <= a_cap:
         a_disp = a
     else:
@@ -167,15 +186,142 @@ def judge_row(row, pool, model_caps):
     return parse_verdict(text), None
 
 
+def rewrite_q(row, q, a, issues, pool, args):
+    """裁判改写 Q 对齐 A (A 不动)。失败返回 None。
+    强制保证 <image> 占位符数量与原 Q 一致 (不足则按原数补前缀)。"""
+    q_clean = q.replace("<image>", " ").strip()
+    if len(a) <= args.a_cap:
+        a_disp = a
+    else:
+        h = args.a_cap * 3 // 4
+        a_disp = a[:h] + "\n…(中部截断)…\n" + a[-(args.a_cap - h):]
+    images = (row["images"] or [])[:MAX_IMAGES_PER_ROW]
+    fake = [{"role": "user",
+             "content": "<image>\n" * len(images)
+                        + REWRITE_TMPL.format(
+                            q=q_clean, a=a_disp,
+                            issues=", ".join(issues) or "不匹配")}]
+    try:
+        new = pool.chat(build_api_messages(fake, images)).strip()
+    except Exception:  # noqa: BLE001
+        return None
+    if not new:
+        return None
+    # 轻校验: 拒绝空/过短/把裁判 verdict JSON 当成 Q 的伪改写
+    if len(new) < 4 or len(new) > 2000:
+        return None
+    if new.startswith("{") and '"match"' in new:
+        return None
+    need = q.count("<image>")
+    if new.count("<image>") != need:
+        new = new.replace("<image>", "").strip()
+        new = ("<image>\n" * need) + new
+    return new
+
+
+def fix_shard(path, pool, args):
+    """修复模式单分片: 全量逐行裁判, 不匹配行改写 Q 后原子写回。
+    A/图片/其余行均不动。返回统计 dict。"""
+    st = {"rows": 0, "match": 0, "mismatch": 0, "auto_empty": 0,
+          "judge_error": 0, "fixed": 0, "fix_failed": 0,
+          "fix_skipped_multi": 0}
+    fix_map = {}
+    pf = pq.ParquetFile(path)
+    seen = 0
+    capped = False
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        for batch in pf.iter_batches(batch_size=args.chunk_rows):
+            rows = batch.to_pylist()
+            if args.max_rows:
+                rows = rows[:max(0, args.max_rows - seen)]
+            if not rows:
+                capped = True
+                break
+
+            def judge_and_rewrite(r):
+                verdict, auto = judge_row(r, pool, (args.q_cap, args.a_cap))
+                if auto or verdict is None or verdict["match"]:
+                    return verdict, auto, None, False
+                q, a = last_pair(r["messages"])
+                n_user = sum(1 for m in r["messages"] or []
+                             if m["role"] == "user")
+                if n_user != 1:
+                    return verdict, auto, None, True
+                new_q = rewrite_q(r, q, a, verdict["issues"], pool, args)
+                return verdict, auto, new_q, False
+
+            futs = {ex.submit(judge_and_rewrite, r): seen + i
+                    for i, r in enumerate(rows)}
+            for f, idx in futs.items():
+                verdict, auto, new_q, multi = f.result()
+                st["rows"] += 1
+                if auto:
+                    st["auto_empty"] += 1
+                    st["mismatch"] += 1
+                    continue
+                if verdict is None:
+                    st["judge_error"] += 1
+                    continue
+                if verdict["match"]:
+                    st["match"] += 1
+                    continue
+                st["mismatch"] += 1
+                if multi:
+                    st["fix_skipped_multi"] += 1
+                elif new_q:
+                    fix_map[idx] = new_q
+                    st["fixed"] += 1
+                else:
+                    st["fix_failed"] += 1
+            seen += len(rows)
+            if args.max_rows and seen >= args.max_rows:
+                capped = True
+                break
+
+    if fix_map:
+        tmp = path + ".qafix_tmp"
+        seen2 = 0
+        pf2 = pq.ParquetFile(path)
+        with pq.ParquetWriter(tmp, schema=pf2.schema_arrow) as writer:
+            for batch in pf2.iter_batches(batch_size=args.chunk_rows):
+                rows = batch.to_pylist()
+                for i, r in enumerate(rows):
+                    gi = seen2 + i
+                    if gi in fix_map:
+                        msgs = [dict(m) for m in r["messages"]]
+                        for m in reversed(msgs):
+                            if m["role"] == "user":
+                                m["content"] = fix_map[gi]
+                                break
+                        r["messages"] = msgs
+                writer.write_table(
+                    pa.Table.from_pylist(rows, schema=pf2.schema_arrow))
+                seen2 += len(rows)
+        # Windows 下 os.replace 要求源文件句柄先释放 (Linux 无此限制)
+        del pf, pf2
+        import gc
+        gc.collect()
+        os.replace(tmp, path)  # 原子替换
+    if not capped:
+        # 完整处理过的分片才打标记; --max-rows 截断的不标记以便续跑
+        with open(path + ".qafix_done", "w", encoding="utf-8") as f:
+            f.write(f"fixed={st['fixed']} rows={st['rows']}\n")
+    return st
+
+
 def main():
     ap = argparse.ArgumentParser(description="蒸馏产物 Q-A 匹配质检 (VLM 裁判)")
     ap.add_argument("--data-root", required=True, help="蒸馏产物根目录")
     ap.add_argument("--manifest", default=None)
     ap.add_argument("--datasets", nargs="*", default=None)
     ap.add_argument("--max-files", type=int, default=None)
+    ap.add_argument("--max-rows", type=int, default=None,
+                    help="修复模式: 每分片最多裁判前 N 行 (调试用)")
     ap.add_argument("--per-dataset", type=int, default=200,
                     help="每数据集抽样行数 (默认 200, 确定性均布)")
     ap.add_argument("--workers", type=int, default=16)
+    ap.add_argument("--chunk-rows", type=int, default=500,
+                    help="修复模式流式读写的行块大小 (默认 500)")
     ap.add_argument("--model", default="qwen-vl")
     ap.add_argument("--num-instances", type=int, default=1)
     ap.add_argument("--base-port", type=int, default=31000)
@@ -188,7 +334,16 @@ def main():
     ap.add_argument("--min-match-rate", type=float, default=0.9,
                     help="匹配率下限 (默认 0.9), 低于则该数据集不达标")
     ap.add_argument("--report", default=None)
+    ap.add_argument("--fix", action="store_true",
+                    help="修复模式: 全量逐行裁判, 不匹配行改写 Q 对齐 A "
+                         "(A 不动), 原地原子写回 (不可逆, 只用于蒸馏副本)")
+    ap.add_argument("--resume", action="store_true",
+                    help="修复模式: 跳过带 .qafix_done 标记的分片")
     args = ap.parse_args()
+
+    if args.fix:
+        print("*** 修复模式: 不匹配行的 Q 将被改写并直接写回源 parquet, "
+              "不可逆! 请确认 --data-root 是蒸馏副本而非原始数据 ***")
 
     manifest_path = args.manifest or os.path.join(
         args.data_root, "dataset_manifest.json")
@@ -211,6 +366,43 @@ def main():
         files = ds.get("files") or []
         if args.max_files:
             files = files[:args.max_files]
+        if args.fix:
+            # ---- 修复模式: 全量逐行裁判 + 改写 Q 原子写回 ----
+            st = {"rows": 0, "match": 0, "mismatch": 0, "auto_empty": 0,
+                  "judge_error": 0, "fixed": 0, "fix_failed": 0,
+                  "fix_skipped_multi": 0}
+            n_shards = 0
+            for finfo in files:
+                rel = norm_rel_path(finfo["path"])
+                p = os.path.join(args.data_root, rel)
+                if not os.path.exists(p):
+                    print(f"  [skip] missing {p}", file=sys.stderr)
+                    continue
+                if args.resume and os.path.exists(p + ".qafix_done"):
+                    continue
+                fst = fix_shard(p, pool, args)
+                n_shards += 1
+                for k in st:
+                    st[k] += fst[k]
+                print(f"  {rel}: {fst['rows']} 行, 修复 {fst['fixed']}, "
+                      f"修复失败 {fst['fix_failed']}, match {fst['match']}")
+            denom = max(st["match"] + st["mismatch"], 1)
+            rate = st["match"] / denom
+            fail = (st["fix_failed"] > 0
+                    or st["judge_error"] > 0.1 * max(st["rows"], 1))
+            any_fail = any_fail or fail
+            line = (f"=== {name} [fix] {st['rows']} 行 {n_shards} 分片: "
+                    f"match {rate:.1%}, 修复 {st['fixed']}, "
+                    f"修复失败 {st['fix_failed']}, 多轮跳过 "
+                    f"{st['fix_skipped_multi']}, 空A(不修) "
+                    f"{st['auto_empty']}, 裁判失败 {st['judge_error']}")
+            if fail:
+                line += "  *** 修复不完全 ***"
+            print(line)
+            report.append({"name": name, "mode": "fix",
+                           "shards": n_shards, **st,
+                           "match_rate": round(rate, 4), "fail": fail})
+            continue
         plan, total = plan_sample(files, args.data_root, args.per_dataset)
         rows = []
         for rel, idxs in plan.items():
