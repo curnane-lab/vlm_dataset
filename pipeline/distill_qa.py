@@ -167,13 +167,16 @@ class TeacherPool:
             self._sessions.s = requests.Session()
         return self._sessions.s
 
-    def chat(self, api_messages):
+    def chat(self, api_messages, return_message=False,
+             chat_template_kwargs=None):
         payload = {
             "model": self.model,
             "messages": api_messages,
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
+        if chat_template_kwargs:
+            payload["chat_template_kwargs"] = chat_template_kwargs
         last_err = None
         for attempt in range(self.retries):
             url = self._next_url() + "/v1/chat/completions"
@@ -181,7 +184,10 @@ class TeacherPool:
                 r = self._session().post(url, json=payload,
                                          timeout=self.timeout)
                 r.raise_for_status()
-                return r.json()["choices"][0]["message"]["content"]
+                message = r.json()["choices"][0]["message"]
+                if return_message:
+                    return message
+                return message["content"]
             except Exception as e:  # noqa: BLE001
                 last_err = e
                 time.sleep(2 * (attempt + 1))
