@@ -182,8 +182,15 @@ def judge_row(row, pool, model_caps):
                   "content": "<image>\n" * len(images)
                              + JUDGE_TMPL.format(q=q_disp, a=a_disp)}]
     api_msgs = build_api_messages(fake_msgs, images)
-    text = pool.chat(api_msgs)
-    return parse_verdict(text), None
+    message = pool.chat(
+        api_msgs,
+        return_message=True,
+        chat_template_kwargs={"enable_thinking": False},
+    )
+    verdict = parse_verdict(message.get("content") or "")
+    if verdict is None:
+        verdict = parse_verdict(message.get("reasoning_content") or "")
+    return verdict, None
 
 
 def rewrite_q(row, q, a, issues, pool, args):
@@ -326,7 +333,7 @@ def main():
     ap.add_argument("--num-instances", type=int, default=1)
     ap.add_argument("--base-port", type=int, default=31000)
     ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--judge-max-tokens", type=int, default=256)
+    ap.add_argument("--judge-max-tokens", type=int, default=1024)
     ap.add_argument("--timeout", type=int, default=300)
     ap.add_argument("--retries", type=int, default=3)
     ap.add_argument("--q-cap", type=int, default=1000)
