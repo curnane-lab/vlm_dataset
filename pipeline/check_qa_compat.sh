@@ -23,9 +23,8 @@
 #   PER_DATASET=200    每数据集抽样行数
 #   WORKERS=16         裁判并发
 #   MIN_MATCH_RATE=0.9 匹配率门禁 (低于则退出码 1; 仅统计模式)
-#   FIX=0              1=修复模式: 全量逐行裁判, 不匹配行改写 Q 对齐 A
-#                      (A 为 MinerU 蒸馏产物, 只读不动), 原地原子写回,
-#                      .qafix_done 断点续跑 (仅用于蒸馏副本, 不可逆!)
+#   FIX=0              1=全量裁判: 不改写 Q, 不写回 parquet。空答案或不匹配
+#                      则失败, 且不写 .qafix_done; 整片匹配才写标记供 --resume
 #   REPORT=<DATA_ROOT>/qa_compat_report.json
 #   EXTRA_ARGS=""      透传给启动命令的额外参数
 #   KEEP_SERVER=0      1=检查完保留服务 (复跑省时)
@@ -68,7 +67,7 @@ echo "裁判模型:   $MODEL_DIR ($SERVED_NAME, $LAUNCHER)"
 echo "数据:       $DATA_ROOT"
 echo "抽样:       每数据集 $PER_DATASET 行, 并发 $WORKERS"
 if [ "$FIX" = "1" ]; then
-    echo "模式:       修复 (全量逐行裁判, 不匹配行改写 Q 写回; A 不动)"
+    echo "模式:       全量裁判 (不改写 Q; 空答案或不匹配则失败)"
 else
     echo "模式:       仅统计 (门禁 match >= $MIN_MATCH_RATE)"
 fi
@@ -122,7 +121,7 @@ fi
 
 # ---------- Step 1: 抽样裁判 / 修复 ----------
 if [ "$FIX" = "1" ]; then
-    echo "[step1] 修复模式: 全量逐行裁判 + 改写 Q ..."
+    echo "[step1] 全量裁判: 不改写 Q ..."
     python3 qa_compat_check.py \
         --data-root "$DATA_ROOT" \
         --model "$SERVED_NAME" \

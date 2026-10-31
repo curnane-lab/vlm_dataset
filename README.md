@@ -231,8 +231,8 @@ pipeline/
 ├── qa_compat_check.py     # Q-A 匹配质检: 通用 VLM 裁判(如 Qwen-VL)看图判
 │                          # (Q,A) 相关性/格式一致性/完整性, 确定性跨分片均布抽样
 │                          # (row-group 粒度取行, 不全量读图), 逐数据集 match 率门禁;
-│                          # --fix 修复模式: 不匹配行由裁判改写 Q 对齐 A (A 为蒸馏
-│                          # 产物只读不动), 占位符数量强校验, 原子写回+断点续跑
+│                          # --fix 全量裁判: 不改写 Q, 不写回 parquet; 空答案或不匹配
+│                          # 则失败, 整片匹配才写 .qafix_done
 ├── check_qa_compat.sh     # 一键: 拉起裁判 vLLM 服务(与 start_teachers.sh 同源:
 │                          # mineru-kit vlm-server, 服务器已验证; 已在跑则复用) ->
 │                          # 等就绪 -> 跑 qa_compat_check.py -> 按需关停 (trap 清理);
@@ -252,7 +252,7 @@ verl/
     └── plot_metrics.py             # 从训练日志画 loss/grad_norm/lr/mfu
 ```
 
-ModelArts 上的标准启动命令。必填输入是 `MODEL_PATH`、`DATA_PATH`、`OUTPUT_DIR`；`DATA_PATH` 下要有 `*.parquet`（`manifest.jsonl` 不存在时按 parquet 自动建清单）。节点参数是 `NNODES`、`NODE_RANK`、`NPROC_PER_NODE`、`MASTER_ADDR`、`MASTER_PORT`、`RDZV_ID`。下面按挂载路径 `/verl_data` 举例：
+ModelArts 上的标准启动命令。必填输入是 `MODEL_PATH`、`DATA_PATH`、`OUTPUT_DIR`。清单优先级是 `$MANIFEST`、`$DATA_PATH/dataset_manifest.json`，两者都没有时才扫描目录下全部 parquet。节点参数是 `NNODES`、`NODE_RANK`、`NPROC_PER_NODE`、`MASTER_ADDR`、`MASTER_PORT`、`RDZV_ID`。下面按挂载路径 `/verl_data` 举例：
 
 ```bash
 export MODEL_PATH=/verl_data/models/Qwen3.6-35B-A3B
