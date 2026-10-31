@@ -31,7 +31,10 @@ distill_qa.py — 基于 vLLM 教师模型的 VLM QA 数据蒸馏脚本 (Linux)
                crop      : 识别级 crop (UniMER/MathWriting/CASIA/FinTabNet/
                            PubTables/场景文字识别), 整图跳过版面检测, 直送
                            分类型识别 prompt (equation/table/text), 空结果
-                           时回退 two-step 裁块路径
+                           时回退 two-step 裁块路径。equation 写成
+                           $$...$$, 并在 user 指令中写明显示定界符;
+                           顶层 equation/align/gather/eqnarray 先拆掉再包,
+                           环境不完整则该行失败、保留原答案
                skip      : holdout 档 (tinychart + FineVision QA/KIE +
                            HRD grounding), 本轮跳过不蒸馏
              线程模型: 每个工作线程绑定一个实例 (round-robin), 持有持久的
@@ -49,6 +52,7 @@ import base64
 import itertools
 import json
 import os
+import re
 import shutil
 import sys
 import threading
@@ -239,6 +243,106 @@ def strip_math_delims(content: str) -> str:
     return c
 
 
+# 这些环境本身是顶层显示公式, 不能再套进 $$。array/aligned 可以留在 $$ 里。
+_TOP_DISPLAY_ENV = (
+    r"equation\*|align\*|gather\*|eqnarray\*|equation|align|gather|eqnarray"
+)
+_OUTER_DISPLAY_RE = re.compile(
+    rf"^\s*\\begin\{{(?P<env>{_TOP_DISPLAY_ENV})\}}"
+    rf"(?P<body>.*)\\end\{{(?P=env)\}}\s*$",
+    re.DOTALL,
+)
+_TOP_DISPLAY_ANY_RE = re.compile(rf"\\begin\{{(?:{_TOP_DISPLAY_ENV})\}}")
+_ENV_TOKEN_RE = re.compile(r"\\(begin|end)\{([^{}]+)\}")
+_DISPLAY_BLOCK_RE = re.compile(r"\$\$(.*?)\$\$|\\\[(.*?)\\\]", re.DOTALL)
+_EQUATION_PROMPT_MARK = "显示定界符"
+_EQUATION_PROMPT_SUFFIX = (
+    "\n\n输出要求：这是独立公式，必须使用显示定界符，且只输出公式本身：\n"
+    "$$\n"
+    "...\n"
+    "$$\n"
+    "不要输出不带定界符的公式，也不要使用裸的 equation、align、gather 环境。"
+)
+
+
+def _brace_balanced(text: str) -> bool:
+    stripped = text.replace(r"\{", "").replace(r"\}", "")
+    return stripped.count("{") == stripped.count("}")
+
+
+def _envs_balanced(text: str) -> bool:
+    stack = []
+    for kind, env in _ENV_TOKEN_RE.findall(text):
+        if kind == "begin":
+            stack.append(env)
+        elif not stack or stack.pop() != env:
+            return False
+    return not stack
+
+
+def normalize_display_equation(content: str):
+    """把公式收成 $$...$$。不完整或仍含顶层显示环境时返回 None。"""
+    c = (content or "").strip()
+    if not c:
+        return None
+    for _ in range(4):
+        nxt = strip_math_delims(c).strip()
+        if nxt == c:
+            break
+        c = nxt
+    if not c:
+        return None
+    for _ in range(4):
+        matched = _OUTER_DISPLAY_RE.match(c)
+        if not matched:
+            break
+        c = matched.group("body").strip()
+        if not c:
+            return None
+    if _TOP_DISPLAY_ANY_RE.search(c):
+        return None
+    if not _brace_balanced(c) or not _envs_balanced(c):
+        return None
+    return f"$$\n{c}\n$$"
+
+
+def has_top_display_env(text: str) -> bool:
+    """答案里是否还有 equation/align/gather/eqnarray 环境。"""
+    return _TOP_DISPLAY_ANY_RE.search(text or "") is not None
+
+
+def equation_display_ok(answer: str) -> bool:
+    """答案只能由完整的 $$...$$ 或 \\[...\\] 块组成, 块内不能有顶层显示环境。"""
+    text = (answer or "").strip()
+    if not text:
+        return False
+    pos = 0
+    found = False
+    for matched in _DISPLAY_BLOCK_RE.finditer(text):
+        if text[pos:matched.start()].strip():
+            return False
+        body = matched.group(1) if matched.group(1) is not None else matched.group(2)
+        body = (body or "").strip()
+        if (not body or _TOP_DISPLAY_ANY_RE.search(body)
+                or not _brace_balanced(body) or not _envs_balanced(body)):
+            return False
+        pos = matched.end()
+        found = True
+    return found and not text[pos:].strip()
+
+
+def annotate_equation_prompt(messages):
+    """在最后一条 user 上写明独立公式必须使用 $$。"""
+    msgs = [dict(m) for m in messages]
+    for i in range(len(msgs) - 1, -1, -1):
+        if msgs[i].get("role") == "user":
+            content = msgs[i].get("content") or ""
+            if _EQUATION_PROMPT_MARK not in content:
+                msgs[i]["content"] = content.rstrip() + _EQUATION_PROMPT_SUFFIX
+            break
+    return msgs
+
+
 def render_blocks_markdown(blocks) -> str:
     """块列表 -> Markdown, 与 HRD 数据集构造规则一致的确定性排版。"""
     parts = []
@@ -251,7 +355,10 @@ def render_blocks_markdown(blocks) -> str:
         elif t == "paragraph_title":
             parts.append(f"## {c}")
         elif t == "equation":
-            parts.append(f"$$\n{strip_math_delims(c)}\n$$")
+            norm = normalize_display_equation(c)
+            if norm is None:
+                raise ValueError("incomplete or bare display equation")
+            parts.append(norm)
         elif t in ("code", "algorithm"):
             parts.append(f"```\n{c}\n```")
         else:
@@ -270,7 +377,7 @@ def render_blocks_grounding(blocks) -> str:
 
 def render_blocks_crop(blocks) -> str:
     """识别级 crop: 按阅读序拼接块内容 (LaTeX / 文本 / HTML), 丢弃页眉页脚等噪声。
-    公式块的 \\[..\\] 包装剥掉, 与 UniMER 等裸 LaTeX 目标对齐。"""
+    公式块先剥掉外层定界符, 由调用方按 equation 路由再包成 $$。"""
     skip = {"header", "footer", "page_number", "page_footnote", "aside_text"}
     out = []
     for b in blocks:
@@ -350,21 +457,45 @@ def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str,
             parts = []
             for o in outs:
                 c = (str(o) if o else "").strip()
-                if c:
-                    parts.append(strip_math_delims(c)
-                                 if crop_type == "equation" else c)
-            answer = "\n".join(parts).strip()
+                if not c:
+                    continue
+                if crop_type == "equation":
+                    norm = normalize_display_equation(c)
+                    if norm is None:
+                        raise ValueError(
+                            "equation output rejected: incomplete or bare "
+                            "display environment")
+                    parts.append(norm)
+                else:
+                    parts.append(c)
+            answer = "\n\n".join(parts).strip()
             if not answer:
                 # 直连偶发空结果 -> 回退 two-step 裁块路径再试一次
                 results = pool.extract(pil_images)
-                answer = "\n\n".join(render_blocks_crop(r)
-                                     for r in results).strip()
+                if crop_type == "equation":
+                    parts = []
+                    for result in results:
+                        raw = render_blocks_crop(result).strip()
+                        if not raw:
+                            continue
+                        norm = normalize_display_equation(raw)
+                        if norm is None:
+                            raise ValueError(
+                                "equation fallback rejected: incomplete or "
+                                "bare display environment")
+                        parts.append(norm)
+                    answer = "\n\n".join(parts).strip()
+                else:
+                    answer = "\n\n".join(render_blocks_crop(r)
+                                         for r in results).strip()
         else:
             results = pool.extract(pil_images)
             render = _RENDERERS[route]
             answer = "\n\n".join(render(r) for r in results).strip()
         if not answer:
             raise ValueError("two-step produced empty answer")
+        if crop_type == "equation":
+            messages = annotate_equation_prompt(messages)
         for i, m in enumerate(messages):
             if m["role"] == "assistant":
                 m["content"] = answer

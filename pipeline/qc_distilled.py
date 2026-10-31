@@ -4,8 +4,10 @@ qc_distilled.py — 蒸馏产物质检: 校验 regenerate 后的 response 是否
 
 检查三类问题 (按 distill_qa.py 的路由契约逐项对齐):
   1) 没刷新: 空答案; 与源答案逐字相同 (= distill 失败时保留原答案的静默兜底)
-  2) 格式错: crop/equation 应为裸 LaTeX, crop/table 应为 HTML, crop/text
-     应为纯文本, markdown 路由应为文档排版文本; 结构上末条必须 assistant
+  2) 格式错: crop/equation 必须是 $$...$$ 或 \\[...\\], 禁止裸的
+     equation/align/gather/eqnarray; crop/table 应为 HTML, crop/text
+     应为纯文本, markdown 路由应为文档排版且不能残留上述裸环境;
+     结构上末条必须 assistant
   3) 内容退化: 布局 token 泄漏 (<|box_start|> 等), OTSL token 泄漏
      (<fcel> 等), 重复循环输出, 长度异常, user 消息/图片字节被改动
 
@@ -34,7 +36,9 @@ import sys
 import pyarrow.parquet as pq
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from distill_qa import crop_block_type, norm_rel_path, route_dataset  # noqa: E402
+from distill_qa import (  # noqa: E402
+    crop_block_type, equation_display_ok, has_top_display_env,
+    norm_rel_path, route_dataset)
 
 LAYOUT_TOKENS = ("<|box_start|>", "<|box_end|>", "<|boend|>",
                  "<|ref_start|>", "<|ref_end|>", "<|rotate_up|>",
@@ -79,9 +83,7 @@ def check_row(answer, route, crop_type, min_md_len, expect_cjk=False):
         if crop_type == "equation":
             if "<table" in a or "<td" in a or "<tr" in a:
                 issues.add("format_violation")
-            if a.startswith("$$") or (a.startswith("\\[") and a.endswith("\\]")):
-                issues.add("delim_residue")
-            if a.count("{") != a.count("}"):
+            if not equation_display_ok(a):
                 issues.add("format_violation")
             if len(a) > 5000:
                 issues.add("too_long")
@@ -101,6 +103,8 @@ def check_row(answer, route, crop_type, min_md_len, expect_cjk=False):
     elif route == "markdown":
         if len(a) < min_md_len:
             issues.add("too_short")
+        if has_top_display_env(a):
+            issues.add("format_violation")
     return issues
 
 

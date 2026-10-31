@@ -83,12 +83,23 @@ SPLIT_DIR="${OUTPUT_DIR}/split_data"
 TRAIN_FILES_LIST="${SPLIT_DIR}/train_files.hydra.txt"
 VAL_FILES_LIST="${SPLIT_DIR}/val_files.hydra.txt"
 
+# 清单优先级: $MANIFEST > $DATA_PATH/dataset_manifest.json >
+# 不存在的 manifest.jsonl (此时切分脚本扫描 data-root 下全部 parquet)。
+if [ -n "${MANIFEST:-}" ]; then
+    MANIFEST_PATH="${MANIFEST}"
+elif [ -f "${DATA_PATH}/dataset_manifest.json" ]; then
+    MANIFEST_PATH="${DATA_PATH}/dataset_manifest.json"
+else
+    MANIFEST_PATH="${DATA_PATH}/manifest.jsonl"
+fi
+
 if [ ! -f "${TRAIN_FILES_LIST}" ] || [ ! -f "${VAL_FILES_LIST}" ]; then
     echo "[INFO] Splitting train/val (ratio=${VAL_RATIO})..."
+    echo "[INFO] Manifest: ${MANIFEST_PATH}"
     mkdir -p "${SPLIT_DIR}"
     python3 "${SCRIPT_DIR}/split_tools/split_vlm_manifest.py" \
         --data-root "${DATA_PATH}" \
-        --manifest "${DATA_PATH}/manifest.jsonl" \
+        --manifest "${MANIFEST_PATH}" \
         --output-root "${SPLIT_DIR}" \
         --val-ratio "${VAL_RATIO}" \
         --chunk-rows 25 \
