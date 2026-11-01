@@ -179,7 +179,7 @@ class TeacherPool:
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
-        if chat_template_kwargs:
+        if chat_template_kwargs is not None:
             payload["chat_template_kwargs"] = chat_template_kwargs
         last_err = None
         for attempt in range(self.retries):
@@ -191,7 +191,7 @@ class TeacherPool:
                 message = r.json()["choices"][0]["message"]
                 if return_message:
                     return message
-                return message["content"]
+                return message.get("content") or message.get("reasoning_content") or ""
             except Exception as e:  # noqa: BLE001
                 last_err = e
                 time.sleep(2 * (attempt + 1))
@@ -343,6 +343,25 @@ def annotate_equation_prompt(messages):
     return msgs
 
 
+def render_answer(answer: str, route: str) -> str:
+    """整段都是完整公式环境时收成 $$。
+
+    只在 route 为 formula 时改写。数据集路由本身是 markdown/grounding/crop,
+    equation crop 会显式传入 formula。align/equation/gather 不能再套进 $$,
+    交给 normalize_display_equation 拆掉外层环境; array/aligned 留在 $$ 内。
+    已经是显示定界符、环境不完整或环境名对不上时原样返回。"""
+    text = (answer or "").strip()
+    if (route != "formula" or not text or text.startswith("$$")
+            or text.startswith("\\[")):
+        return text
+    if not re.fullmatch(
+            r"\\begin\{(?:aligned|align\*?|equation\*?|gather\*?|array)\}"
+            r".*\\end\{(?:aligned|align\*?|equation\*?|gather\*?|array)\}",
+            text, flags=re.DOTALL):
+        return text
+    return normalize_display_equation(text) or text
+
+
 def render_blocks_markdown(blocks) -> str:
     """块列表 -> Markdown, 与 HRD 数据集构造规则一致的确定性排版。"""
     parts = []
@@ -460,7 +479,8 @@ def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str,
                 if not c:
                     continue
                 if crop_type == "equation":
-                    norm = normalize_display_equation(c)
+                    norm = normalize_display_equation(
+                        render_answer(c, "formula"))
                     if norm is None:
                         raise ValueError(
                             "equation output rejected: incomplete or bare "
@@ -478,7 +498,8 @@ def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str,
                         raw = render_blocks_crop(result).strip()
                         if not raw:
                             continue
-                        norm = normalize_display_equation(raw)
+                        norm = normalize_display_equation(
+                            render_answer(raw, "formula"))
                         if norm is None:
                             raise ValueError(
                                 "equation fallback rejected: incomplete or "
@@ -495,6 +516,7 @@ def distill_row_two_step(row, pool: TwoStepTeacherPool, route: str,
         if not answer:
             raise ValueError("two-step produced empty answer")
         if crop_type == "equation":
+            answer = render_answer(answer, "formula")
             messages = annotate_equation_prompt(messages)
         for i, m in enumerate(messages):
             if m["role"] == "assistant":
