@@ -13,6 +13,7 @@ row-group 粒度只取目标行 (避免为抽 200 行全量读图); 同参数重
 裁判输入: 图片 (原 bytes 直转 data_url, 零转码) + Q + A (A 过长截首尾);
 裁判输出一行 JSON: {"match": bool, "issues": [...], "confidence": 0..1}
 空 A 不送裁判, 直接判 mismatch (empty_answer)。
+抽样报告的 cases 记下空答案、不匹配和裁判失败的行 (file, row, Q, A, issues)。
 
 用法:
   # 只统计 (默认)
@@ -330,31 +331,49 @@ def main():
                            "match_rate": round(rate, 4), "fail": fail})
             continue
         plan, total = plan_sample(files, args.data_root, args.per_dataset)
-        rows = []
+        fetched = []
         for rel, idxs in plan.items():
-            rows.extend(fetch_rows(os.path.join(args.data_root, rel), idxs))
+            for idx, row in fetch_rows(
+                    os.path.join(args.data_root, rel), idxs):
+                fetched.append((rel, idx, row))
 
-        st = {"sampled": len(rows), "match": 0, "mismatch": 0,
+        st = {"sampled": len(fetched), "match": 0, "mismatch": 0,
               "auto_empty": 0, "judge_error": 0}
         issue_counter = {}
+        detailed_cases = []
 
-        def work(r):
-            return judge_row(r, pool, (args.q_cap, args.a_cap))
+        def work(item):
+            return judge_row(item[2], pool, (args.q_cap, args.a_cap))
 
         with ThreadPoolExecutor(max_workers=args.workers) as ex:
-            for verdict, auto in ex.map(work, [r for _, r in rows]):
+            for (rel, idx, row), (verdict, auto) in zip(
+                    fetched, ex.map(work, fetched)):
+                q_text, a_text = last_pair(row["messages"])
                 if auto:
                     st["auto_empty"] += 1
                     st["mismatch"] += 1
                     issue_counter[auto] = issue_counter.get(auto, 0) + 1
+                    detailed_cases.append({"file": rel, "row": idx,
+                                           "status": auto, "q": q_text,
+                                           "a": a_text, "issues": [auto]})
                     continue
                 if verdict is None:
                     st["judge_error"] += 1
+                    detailed_cases.append({"file": rel, "row": idx,
+                                           "status": "judge_error",
+                                           "q": q_text, "a": a_text,
+                                           "issues": []})
                     continue
                 if verdict["match"]:
                     st["match"] += 1
                 else:
                     st["mismatch"] += 1
+                    detailed_cases.append({"file": rel, "row": idx,
+                                           "status": "mismatch",
+                                           "q": q_text, "a": a_text,
+                                           "issues": verdict["issues"],
+                                           "confidence":
+                                               verdict["confidence"]})
                 for iss in verdict["issues"]:
                     issue_counter[iss] = issue_counter.get(iss, 0) + 1
 
@@ -373,7 +392,8 @@ def main():
         print(line)
         report.append({"name": name, "total_rows": total, **st,
                        "match_rate": round(rate, 4), "fail": fail,
-                       "issues": dict(top_issues)})
+                       "issues": dict(top_issues),
+                       "cases": detailed_cases})
 
     if args.report:
         with open(args.report, "w", encoding="utf-8") as f:
