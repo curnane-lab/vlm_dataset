@@ -289,5 +289,6 @@ bash verl/run_verl_sft.sh \
 - `docs/omnidocbench_npu_eval_guide.md` — OmniDocBench v1.6 在 NPU 上的端到端
   评测环境配置指南 (推理侧 vlm-server + two-step, 评测侧 odb_venv/py3.10,
   CDM 渲染栈 shim 方案, 评测仓 spawn 补丁, 复测成绩 95.24 vs 论文 95.69)
-- `eval/` — SFT 后的 OmniDocBench 成绩摘要。每次评测一个子目录，内放
+- `eval/` — SFT 后的 OmniDocBench 评测。基准脚本是
+  `eval/run_omnidocbench_v3_sft_nonthink_4npu.sh`；每次成绩一个子目录，内放
   `meta.json` 与评测仓 `run_summary.json` 的原样拷贝；不提交预测原文和渲染中间文件
