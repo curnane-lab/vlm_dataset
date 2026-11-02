@@ -239,11 +239,11 @@ pipeline/
 │                          # FIX=1 开修复模式
 ├── formula_display.py     # 蒸馏、离线修复、质检共用的公式定界符规则
 ├── normalize_formula_delims.py
-│                          # 在归一化前的公式答案上套用上述规则, 不删行。
-│                          # aligned/array 保留环境和参数; align→aligned;
-│                          # gather→gathered; equation 只去外壳。
-│                          # 无法确定的行保留原文, 写入 normalize_rejected.jsonl。
-│                          # 不要拿它重跑已经剥掉环境的 v2/v3。源目录只读
+│                          # 在归一化前的公式答案上套用上述规则。
+│                          # 整段只有一对行内定界符时先剥掉再规范化。
+│                          # --profile audit 保留待审行; trainable 从训练 parquet 去掉。
+│                          # normalize_rejected.jsonl 只表示没自动修好。
+│                          # --dst-root 不能与源目录相同。不要重跑已剥壳的 v2/v3
 └── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
 ```
 

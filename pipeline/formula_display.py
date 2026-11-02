@@ -7,11 +7,15 @@ Rules, applied only when the structure is unambiguous:
 - align / align*: convert to aligned, body unchanged
 - gather / gather*: convert to gathered, body unchanged
 - equation / equation*: drop only that environment shell, body unchanged
+- a formula wrapped entirely by one ``\\(...\\)`` or ``$...$`` pair: drop
+  that pair, then normalize. Escaped ``\\$`` is not a delimiter. A leftover
+  or mismatched delimiter is review
 - anything else with an environment, a bare alignment ``&``, or an
   unbalanced begin/end: review, do not guess
 
-A successful result is ``$$\\n...\\n$$``. Running it again is a no-op.
-``{x}+y`` and ``[a,b]`` are formula text, not optional arguments.
+``array*``, ``aligned*``, and ``gathered*`` are not amsmath environments
+and are not accepted. A successful result is ``$$\\n...\\n$$``. Running it
+again is a no-op. ``{x}+y`` and ``[a,b]`` are formula text, not arguments.
 """
 
 import re
@@ -28,7 +32,8 @@ _TOP_DISPLAY_RE = re.compile(
     r"|equation|align|gather|eqnarray)\}"
 )
 
-_KEEP_SHELL = {"aligned", "aligned*", "array", "array*", "gathered", "gathered*"}
+# Starred array/aligned/gathered are not defined by amsmath.
+_KEEP_SHELL = {"aligned", "array", "gathered"}
 _CONVERT = {
     "align": "aligned",
     "align*": "aligned",
@@ -177,6 +182,88 @@ def normalize_math(answer):
     return _normalize(original.strip())
 
 
+def _scan_delimiters(text):
+    """Pair unescaped ``$$``, ``\\[\\]``, ``$``, and ``\\(\\)``.
+
+    Return ``(tokens, error)``. Each token is ``(kind, start, end)`` and
+    covers the delimiters plus their interior. An odd run of backslashes
+    escapes the following character, so ``\\$`` is not a dollar.
+    """
+    tokens = []
+    index = 0
+    limit = len(text)
+    while index < limit:
+        if text.startswith("$$", index) and not _escaped(text, index):
+            close = _find_token(text, "$$", index + 2)
+            if close is None:
+                return None, "mismatched_delimiter"
+            tokens.append(("display_dollar", index, close + 2))
+            index = close + 2
+            continue
+        if text.startswith("\\[", index) and not _escaped(text, index):
+            close = _find_token(text, "\\]", index + 2)
+            if close is None:
+                return None, "mismatched_delimiter"
+            tokens.append(("display_bracket", index, close + 2))
+            index = close + 2
+            continue
+        if index < limit and text[index] == "$" and not _escaped(text, index):
+            close = _find_dollar(text, index + 1)
+            if close is None:
+                return None, "mismatched_delimiter"
+            tokens.append(("inline_dollar", index, close + 1))
+            index = close + 1
+            continue
+        if text.startswith("\\(", index) and not _escaped(text, index):
+            close = _find_token(text, "\\)", index + 2)
+            if close is None:
+                return None, "mismatched_delimiter"
+            tokens.append(("inline_paren", index, close + 2))
+            index = close + 2
+            continue
+        if ((text.startswith("\\)", index) or text.startswith("\\]", index))
+                and not _escaped(text, index)):
+            return None, "mismatched_delimiter"
+        index += 1
+    return tokens, None
+
+
+def _find_token(text, token, start):
+    cursor = start
+    while cursor <= len(text) - len(token):
+        if text.startswith(token, cursor) and not _escaped(text, cursor):
+            return cursor
+        cursor += 1
+    return None
+
+
+def _find_dollar(text, start):
+    cursor = start
+    while cursor < len(text):
+        if text[cursor] == "$" and not _escaped(text, cursor):
+            return cursor
+        cursor += 1
+    return None
+
+
+def _covering_inline(text):
+    """Return ``(body, reason)`` when ``text`` is one inline pair or invalid.
+
+    ``(None, None)`` means there is no inline delimiter to peel.
+    """
+    tokens, error = _scan_delimiters(text)
+    if error:
+        return None, error
+    if not tokens:
+        return None, None
+    kind, start, end = tokens[0]
+    if (len(tokens) == 1 and start == 0 and end == len(text)
+            and kind in ("inline_dollar", "inline_paren")):
+        skip = 1 if kind == "inline_dollar" else 2
+        return text[start + skip:end - skip], None
+    return None, "residual_delimiter"
+
+
 def _normalize(text):
     blocks = _display_blocks(text)
     if blocks is not None and not (
@@ -192,6 +279,20 @@ def _normalize(text):
             return inner
         return _finish(text, inner.text, inner.change_type)
 
+    inline_body, inline_reason = _covering_inline(text)
+    if inline_reason:
+        return _review(inline_reason)
+    if inline_body is not None:
+        if not inline_body.strip():
+            return _review("empty")
+        inner = _normalize(inline_body.strip())
+        if inner.action == "review":
+            return inner
+        change_type = inner.change_type
+        if change_type in ("unchanged", "wrap_plain", "strip_inline"):
+            change_type = "strip_inline"
+        return _finish(text, inner.text, change_type)
+
     single = _single_env(text)
     if single:
         return _normalize_env(text, single[0], single[1])
@@ -200,8 +301,11 @@ def _normalize(text):
         return _review("unknown_structure")
     if has_bare_alignment(text):
         return _review("stripped_alignment")
-    if "$$" in text or "\\[" in text or "\\]" in text:
-        return _review("unknown_structure")
+    tokens, error = _scan_delimiters(text)
+    if error:
+        return _review(error)
+    if tokens:
+        return _review("residual_delimiter")
     return _finish(text, _wrap(text), "wrap_plain")
 
 
@@ -235,7 +339,20 @@ def _normalize_blocks(text, blocks):
     return _finish(text, joined, change_type)
 
 
+def _delimiter_problem(text):
+    tokens, error = _scan_delimiters(text)
+    if error:
+        return error
+    if tokens:
+        return "residual_delimiter"
+    return None
+
+
 def _normalize_env(text, env, body):
+    if env in _KEEP_SHELL or env in _CONVERT:
+        problem = _delimiter_problem(body)
+        if problem:
+            return _review(problem)
     if env in _KEEP_SHELL:
         kept = "\\begin{" + env + "}" + body + "\\end{" + env + "}"
         return _finish(text, _wrap(kept), "keep_environment")
@@ -250,13 +367,14 @@ def _normalize_env(text, env, body):
             return _review("empty")
         if has_bare_alignment(preserved):
             return _review("stripped_alignment")
-        nested = _single_env(preserved)
-        if nested and nested[0] in _CONVERT:
-            inner = _normalize_env(preserved, nested[0], nested[1])
-            if inner.action == "review":
-                return inner
-            return _finish(text, inner.text, inner.change_type)
-        return _finish(text, _wrap(preserved), "strip_equation")
+        inner = _normalize(preserved)
+        if inner.action == "review":
+            return inner
+        change_type = inner.change_type
+        if change_type not in ("convert_align", "convert_gather",
+                               "keep_environment", "mixed"):
+            change_type = "strip_equation"
+        return _finish(text, inner.text, change_type)
     return _review("unknown_structure")
 
 
@@ -282,5 +400,8 @@ def equation_display_ok(answer):
             return False
         if (not left or has_top_display_env(left) or has_bare_alignment(left)
                 or env_balance_error(left) or not _brace_balanced(left)):
+            return False
+        _tokens, delimiter_error = _scan_delimiters(left)
+        if delimiter_error or _tokens:
             return False
     return True

@@ -35,6 +35,7 @@ distill_qa.py — 基于 vLLM 教师模型的 VLM QA 数据蒸馏脚本 (Linux)
                            $$...$$, 并在 user 指令中写明显示定界符;
                            aligned/array 保留环境和参数, align→aligned,
                            gather→gathered, equation 只去掉环境外壳;
+                           整段 \\(...\\) 或 $...$ 先剥掉再包成 $$;
                            无法确定的结构该行失败、保留原答案
                skip      : holdout 档 (tinychart + FineVision QA/KIE +
                            HRD grounding), 本轮跳过不蒸馏
