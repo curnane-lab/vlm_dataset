@@ -120,6 +120,7 @@ magick -density 200 -quality 100 file.pdf -append out.png   # 全部页纵向拼
 cd /data/mineru/OmniDocBench && source /data/mineru/odb_venv/bin/activate
 python pdf_validation.py --config /data/mineru/odb_eval.yaml
 # 产物: ./result/<run_name>_run_summary.json 等
+# SFT 后的成绩摘要归档到本仓 eval/<YYYYMMDD_模型_训练数据>/，见 eval/README.md
 ```
 
 本环境使用的 `odb_eval.yaml` 全文 (end2end, 四组指标, 32 并发匹配):
