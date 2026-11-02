@@ -1,0 +1,13 @@
+{
+  "run_name": "",
+  "evaluated_at": "",
+  "model_path": "",
+  "checkpoint": "",
+  "train_data": "",
+  "train_rows": null,
+  "benchmark": "OmniDocBench v1.6",
+  "eval_config": "docs/omnidocbench_npu_eval_guide.md",
+  "prediction_dir": "",
+  "summary_file": "run_summary.json",
+  "note": ""
+}
