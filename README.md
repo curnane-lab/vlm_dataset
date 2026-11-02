@@ -236,7 +236,7 @@ pipeline/
 ├── check_qa_compat.sh     # 一键: 拉起裁判 vLLM 服务(与 start_teachers.sh 同源:
 │                          # mineru-kit vlm-server, 服务器已验证; 已在跑则复用) ->
 │                          # 等就绪 -> 跑 qa_compat_check.py -> 按需关停 (trap 清理);
-│                          # FIX=1 开修复模式
+│                          # FIX=1 开全量裁判, 不改写 Q
 ├── formula_display.py     # 蒸馏、离线修复、质检共用的公式定界符规则
 ├── normalize_formula_delims.py
 │                          # 在归一化前的公式答案上套用上述规则。
