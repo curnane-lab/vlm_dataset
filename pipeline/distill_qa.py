@@ -33,8 +33,9 @@ distill_qa.py — 基于 vLLM 教师模型的 VLM QA 数据蒸馏脚本 (Linux)
                            分类型识别 prompt (equation/table/text), 空结果
                            时回退 two-step 裁块路径。equation 写成
                            $$...$$, 并在 user 指令中写明显示定界符;
-                           顶层 equation/align/gather/eqnarray 先拆掉再包,
-                           环境不完整则该行失败、保留原答案
+                           aligned/array 保留环境和参数, align→aligned,
+                           gather→gathered, equation 只去掉环境外壳;
+                           无法确定的结构该行失败、保留原答案
                skip      : holdout 档 (tinychart + FineVision QA/KIE +
                            HRD grounding), 本轮跳过不蒸馏
              线程模型: 每个工作线程绑定一个实例 (round-robin), 持有持久的
@@ -52,11 +53,17 @@ import base64
 import itertools
 import json
 import os
-import re
 import shutil
 import sys
 import threading
 import time
+
+try:
+    from formula_display import (
+        equation_display_ok, has_top_display_env, normalize_math)
+except ImportError:  # imported as pipeline.distill_qa
+    from pipeline.formula_display import (
+        equation_display_ok, has_top_display_env, normalize_math)
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
@@ -243,18 +250,6 @@ def strip_math_delims(content: str) -> str:
     return c
 
 
-# 这些环境本身是顶层显示公式, 不能再套进 $$。array/aligned 可以留在 $$ 里。
-_TOP_DISPLAY_ENV = (
-    r"equation\*|align\*|gather\*|eqnarray\*|equation|align|gather|eqnarray"
-)
-_OUTER_DISPLAY_RE = re.compile(
-    rf"^\s*\\begin\{{(?P<env>{_TOP_DISPLAY_ENV})\}}"
-    rf"(?P<body>.*)\\end\{{(?P=env)\}}\s*$",
-    re.DOTALL,
-)
-_TOP_DISPLAY_ANY_RE = re.compile(rf"\\begin\{{(?:{_TOP_DISPLAY_ENV})\}}")
-_ENV_TOKEN_RE = re.compile(r"\\(begin|end)\{([^{}]+)\}")
-_DISPLAY_BLOCK_RE = re.compile(r"\$\$(.*?)\$\$|\\\[(.*?)\\\]", re.DOTALL)
 _EQUATION_PROMPT_MARK = "显示定界符"
 _EQUATION_PROMPT_SUFFIX = (
     "\n\n输出要求：这是独立公式，必须使用显示定界符，且只输出公式本身：\n"
@@ -265,70 +260,12 @@ _EQUATION_PROMPT_SUFFIX = (
 )
 
 
-def _brace_balanced(text: str) -> bool:
-    stripped = text.replace(r"\{", "").replace(r"\}", "")
-    return stripped.count("{") == stripped.count("}")
-
-
-def _envs_balanced(text: str) -> bool:
-    stack = []
-    for kind, env in _ENV_TOKEN_RE.findall(text):
-        if kind == "begin":
-            stack.append(env)
-        elif not stack or stack.pop() != env:
-            return False
-    return not stack
-
-
 def normalize_display_equation(content: str):
-    """把公式收成 $$...$$。不完整或仍含顶层显示环境时返回 None。"""
-    c = (content or "").strip()
-    if not c:
+    """把公式收成 $$...$$。结构无法确定时返回 None, 调用方保留原答案。"""
+    result = normalize_math(content or "")
+    if result.action == "review":
         return None
-    for _ in range(4):
-        nxt = strip_math_delims(c).strip()
-        if nxt == c:
-            break
-        c = nxt
-    if not c:
-        return None
-    for _ in range(4):
-        matched = _OUTER_DISPLAY_RE.match(c)
-        if not matched:
-            break
-        c = matched.group("body").strip()
-        if not c:
-            return None
-    if _TOP_DISPLAY_ANY_RE.search(c):
-        return None
-    if not _brace_balanced(c) or not _envs_balanced(c):
-        return None
-    return f"$$\n{c}\n$$"
-
-
-def has_top_display_env(text: str) -> bool:
-    """答案里是否还有 equation/align/gather/eqnarray 环境。"""
-    return _TOP_DISPLAY_ANY_RE.search(text or "") is not None
-
-
-def equation_display_ok(answer: str) -> bool:
-    """答案只能由完整的 $$...$$ 或 \\[...\\] 块组成, 块内不能有顶层显示环境。"""
-    text = (answer or "").strip()
-    if not text:
-        return False
-    pos = 0
-    found = False
-    for matched in _DISPLAY_BLOCK_RE.finditer(text):
-        if text[pos:matched.start()].strip():
-            return False
-        body = matched.group(1) if matched.group(1) is not None else matched.group(2)
-        body = (body or "").strip()
-        if (not body or _TOP_DISPLAY_ANY_RE.search(body)
-                or not _brace_balanced(body) or not _envs_balanced(body)):
-            return False
-        pos = matched.end()
-        found = True
-    return found and not text[pos:].strip()
+    return result.text
 
 
 def annotate_equation_prompt(messages):
@@ -344,22 +281,14 @@ def annotate_equation_prompt(messages):
 
 
 def render_answer(answer: str, route: str) -> str:
-    """整段都是完整公式环境时收成 $$。
-
-    只在 route 为 formula 时改写。数据集路由本身是 markdown/grounding/crop,
-    equation crop 会显式传入 formula。align/equation/gather 不能再套进 $$,
-    交给 normalize_display_equation 拆掉外层环境; array/aligned 留在 $$ 内。
-    已经是显示定界符、环境不完整或环境名对不上时原样返回。"""
-    text = (answer or "").strip()
-    if (route != "formula" or not text or text.startswith("$$")
-            or text.startswith("\\[")):
-        return text
-    if not re.fullmatch(
-            r"\\begin\{(?:aligned|align\*?|equation\*?|gather\*?|array)\}"
-            r".*\\end\{(?:aligned|align\*?|equation\*?|gather\*?|array)\}",
-            text, flags=re.DOTALL):
-        return text
-    return normalize_display_equation(text) or text
+    """公式路由走与离线修复相同的 normalize_math。无法确定时原样返回。"""
+    text = answer or ""
+    if route != "formula":
+        return text.strip()
+    result = normalize_math(text)
+    if result.action == "review":
+        return text.strip()
+    return result.text
 
 
 def render_blocks_markdown(blocks) -> str:
