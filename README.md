@@ -244,7 +244,12 @@ pipeline/
 │                          # --profile audit 保留待审行; trainable 从训练 parquet 去掉。
 │                          # normalize_rejected.jsonl 只表示没自动修好。
 │                          # --dst-root 不能与源目录相同。不要重跑已剥壳的 v2/v3
-└── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
+├── make_mini_dataset.py   # 生成 qwen_vl 冒烟小数据集(全链路自检用)
+├── build_mix_dataset.py   # 合训集构建: tier2 采样副本硬链接 + Infinity 含表整页
+│                          # 子集 (整页MD prompt + 答案含管道表, 配额制, 确定性),
+│                          # 产出自带合并 manifest, 直接进 distill/qc/训练
+└── check_overlap_omnidocbench.py  # 合训集 vs OmniDocBench 1651页图像重合检查
+                                   # (md5 精确 + aHash 近重复), 退出码门禁
 ```
 
 冒烟示例: `python3 pipeline/distill_qa.py --data-root <数据根> --manifest manifests/dataset_manifest_smoke.json --output-root /tmp/smoke --max-rows 20 --num-instances 3 --base-port 30000 --model mineru-vlm`
