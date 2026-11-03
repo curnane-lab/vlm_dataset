@@ -81,6 +81,13 @@ def row_ok(row, min_len, max_len):
 
 
 def link_or_copy(src, dst):
+    if os.path.exists(dst):
+        try:
+            if os.path.samefile(src, dst):
+                return  # 已是同一文件的硬链接, 幂等跳过
+        except OSError:
+            pass
+        os.remove(dst)  # 内容过期, 重建
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     try:
         os.link(src, dst)
@@ -97,6 +104,9 @@ def main():
                     help="含表整页目标数 (默认 4000)")
     ap.add_argument("--n-plain", type=int, default=1000,
                     help="正文/公式整页目标数 (默认 1000, 维持转写能力)")
+    ap.add_argument("--per-shard-cap", type=int, default=0,
+                    help="每分片最多入选行数 (table/plain 分别计), 0=不限; "
+                         "设上限可强制来源分片铺开, 避免含表密集区段灌满配额")
     ap.add_argument("--min-len", type=int, default=500)
     ap.add_argument("--max-len", type=int, default=20000)
     args = ap.parse_args()
@@ -146,6 +156,8 @@ def main():
     drop = {}
     pending = []
     done = False
+    covered = set()  # 有入选行的源分片集合 (来源覆盖统计)
+    cap = args.per_shard_cap
     with pq.ParquetWriter(dst, schema=schema) as writer:
         for start in range(stride):
             if done:
@@ -153,6 +165,7 @@ def main():
             for si in range(start, n_shards, stride):
                 rel = files[si]["path"].replace("\\", "/")
                 pf = pq.ParquetFile(os.path.join(args.data_root, rel))
+                cur_table = cur_plain = 0
                 for batch in pf.iter_batches(batch_size=500):
                     for row in batch.to_pylist():
                         scanned += 1
@@ -161,13 +174,18 @@ def main():
                             drop[why] = drop.get(why, 0) + 1
                             continue
                         if why == "table":
-                            if n_table >= args.n_table:
+                            if n_table >= args.n_table \
+                                    or (cap and cur_table >= cap):
                                 continue
                             n_table += 1
+                            cur_table += 1
                         else:
-                            if n_plain >= args.n_plain:
+                            if n_plain >= args.n_plain \
+                                    or (cap and cur_plain >= cap):
                                 continue
                             n_plain += 1
+                            cur_plain += 1
+                        covered.add(si)
                         pending.append({"messages": row["messages"],
                                         "images": row["images"]})
                         if len(pending) >= FLUSH_EVERY:
@@ -188,6 +206,8 @@ def main():
     total = n_table + n_plain
     print(f"[infinity] 扫描 {scanned:,} 行, 选中 {total} "
           f"(含表 {n_table}, 正文/公式 {n_plain}); 过滤 {drop}")
+    print(f"[infinity] 来源覆盖: {len(covered)}/{n_shards} 个源分片"
+          + (f" (每分片上限 {cap})" if cap else " (无上限)"))
     if n_table < args.n_table:
         print(f"[warn] 含表整页不足配额 ({n_table} < {args.n_table}), "
               f"按实际数量写入", file=sys.stderr)
