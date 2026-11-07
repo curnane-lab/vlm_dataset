@@ -54,6 +54,7 @@ import base64
 import itertools
 import json
 import os
+import re
 import shutil
 import sys
 import threading
@@ -241,6 +242,10 @@ def crop_block_type(name: str) -> str:
 _MD_SKIP_TYPES = {"header", "footer", "page_number", "page_footnote",
                   "aside_text", "image", "chart", "image_block"}
 
+_BASE64_IMAGE_HTML_RE = re.compile(
+    r"<img\b[^>]*src\s*=\s*[\"']data:image/[^;]+;base64,[^\"']*[\"'][^>]*>",
+    re.IGNORECASE)
+
 
 def strip_math_delims(content: str) -> str:
     """剥掉公式识别结果外层的 $$..$$ / \\[..\\] 包装, 避免渲染时重复嵌套。"""
@@ -297,6 +302,7 @@ def render_blocks_markdown(blocks) -> str:
     parts = []
     for b in blocks:
         t, c = b["type"], (b.get("content") or "").strip()
+        c = _BASE64_IMAGE_HTML_RE.sub("[image]", c)
         if t in _MD_SKIP_TYPES or not c:
             continue
         if t in ("doc_title", "title"):
