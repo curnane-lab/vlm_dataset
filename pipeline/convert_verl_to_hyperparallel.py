@@ -27,18 +27,25 @@ hyper_parallel.data.omni (OmniMappingDataset + AutoProcessorTransform)
     --output-root /data/.../hyperparallel_omni \
     --format jsonl --validate-decode
 
-hyper-parallel 侧 (示例, 数据段粘进模型 yaml, 参考 examples/data/omni_data.yaml):
+hyper-parallel 侧 (示例, 数据段粘进模型 yaml, 对齐 mindspore-ai/hyper-parallel
+master 的 examples/qwen3_6_moe 官方 VLM recipe train_online_vlm.yaml):
   dataset:
     _target_: hyper_parallel.data.omni.build_dataset.build_online_omni_mapping_dataset
+    model_assets:
+      _target_: hyper_parallel.data.omni.omni_transform.build_auto_processor
+      pretrained_model_name_or_path: path/to/model_weights
     data_path: <output-root>/v2_crop_train-00000-of-00001.jsonl
     data_config: {}
     data_transform:
       _target_: hyper_parallel.data.omni.omni_transform.AutoProcessorTransform
       max_seq_len: 8192
   dataloader:
-    _target_: hyper_parallel.data.omni.loader.OmniPackingLoader
+    _target_: hyper_parallel.data.batching.FixedBatchDataLoader
     collate_fn:
-      _target_: hyper_parallel.data.omni.collator.OmniCollator
+      _target_: hyper_parallel.data.batching.build_omni_collate_fn
+    get_batch: hyper_parallel.models.qwen3_5_moe.vlm_cp.QwenVLMParallelBatch
+    # get_batch 与模型绑定, 换模型请用对应实现; 需要序列打包时再换成
+    # packing loader (仓库 omni 模块内, 参见所训练分支的 recipe)
 """
 
 import argparse
