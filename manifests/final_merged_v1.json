@@ -1,0 +1,497 @@
+{
+  "version": 1,
+  "data_root": "/data/verl_project/distill_outputs/final_merged_v1",
+  "comment": "Merged Agent A+B final distillation archive for Q-A compatibility check",
+  "datasets": [
+    {
+      "name": "UniMER_Dataset_vlm",
+      "schema_adapter": "qwen_vl",
+      "weight": 1.0,
+      "total_rows": 49269,
+      "num_files": 3,
+      "files": [
+        {
+          "path": "UniMER_Dataset_vlm/vlm_parquet/train-00000-of-00003.parquet",
+          "rows": 21367,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "UniMER_Dataset_vlm/vlm_parquet/train-00001-of-00003.parquet",
+          "rows": 21417,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "UniMER_Dataset_vlm/vlm_parquet/train-00002-of-00003.parquet",
+          "rows": 6485,
+          "schema_adapter": "qwen_vl"
+        }
+      ],
+      "data_root": "/data/verl_project/distill_outputs/final_merged_v1"
+    },
+    {
+      "name": "MathWriting-human_vlm",
+      "schema_adapter": "qwen_vl",
+      "weight": 1.0,
+      "total_rows": 11462,
+      "num_files": 3,
+      "files": [
+        {
+          "path": "MathWriting-human_vlm/vlm_parquet/train-00000-of-00003.parquet",
+          "rows": 3837,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "MathWriting-human_vlm/vlm_parquet/train-00001-of-00003.parquet",
+          "rows": 3804,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "MathWriting-human_vlm/vlm_parquet/train-00002-of-00003.parquet",
+          "rows": 3821,
+          "schema_adapter": "qwen_vl"
+        }
+      ],
+      "data_root": "/data/verl_project/distill_outputs/final_merged_v1"
+    },
+    {
+      "name": "FinTabNet_OTSL_HTML_vlm",
+      "schema_adapter": "qwen_vl",
+      "weight": 1.0,
+      "total_rows": 3796,
+      "num_files": 11,
+      "files": [
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00000-of-00011.parquet",
+          "rows": 315,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00001-of-00011.parquet",
+          "rows": 337,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00002-of-00011.parquet",
+          "rows": 383,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00003-of-00011.parquet",
+          "rows": 349,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00004-of-00011.parquet",
+          "rows": 350,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00005-of-00011.parquet",
+          "rows": 356,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00006-of-00011.parquet",
+          "rows": 324,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00007-of-00011.parquet",
+          "rows": 368,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00008-of-00011.parquet",
+          "rows": 308,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00009-of-00011.parquet",
+          "rows": 356,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "FinTabNet_OTSL_HTML_vlm/vlm_parquet/train-00010-of-00011.parquet",
+          "rows": 350,
+          "schema_adapter": "qwen_vl"
+        }
+      ],
+      "data_root": "/data/verl_project/distill_outputs/final_merged_v1"
+    },
+    {
+      "name": "PubTables-1M_OTSL-v1.1_HTML_vlm",
+      "schema_adapter": "qwen_vl",
+      "weight": 1.0,
+      "total_rows": 26083,
+      "num_files": 48,
+      "files": [
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00000-of-00048.parquet",
+          "rows": 540,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00001-of-00048.parquet",
+          "rows": 536,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00002-of-00048.parquet",
+          "rows": 545,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00003-of-00048.parquet",
+          "rows": 551,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00004-of-00048.parquet",
+          "rows": 546,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00005-of-00048.parquet",
+          "rows": 595,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00006-of-00048.parquet",
+          "rows": 551,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00007-of-00048.parquet",
+          "rows": 521,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00008-of-00048.parquet",
+          "rows": 546,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00009-of-00048.parquet",
+          "rows": 532,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00010-of-00048.parquet",
+          "rows": 538,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00011-of-00048.parquet",
+          "rows": 540,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00012-of-00048.parquet",
+          "rows": 553,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00013-of-00048.parquet",
+          "rows": 546,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00014-of-00048.parquet",
+          "rows": 519,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00015-of-00048.parquet",
+          "rows": 512,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00016-of-00048.parquet",
+          "rows": 539,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00017-of-00048.parquet",
+          "rows": 532,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00018-of-00048.parquet",
+          "rows": 554,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00019-of-00048.parquet",
+          "rows": 556,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00020-of-00048.parquet",
+          "rows": 505,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00021-of-00048.parquet",
+          "rows": 495,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00022-of-00048.parquet",
+          "rows": 551,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00023-of-00048.parquet",
+          "rows": 586,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00024-of-00048.parquet",
+          "rows": 578,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00025-of-00048.parquet",
+          "rows": 587,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00026-of-00048.parquet",
+          "rows": 538,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00027-of-00048.parquet",
+          "rows": 535,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00028-of-00048.parquet",
+          "rows": 532,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00029-of-00048.parquet",
+          "rows": 521,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00030-of-00048.parquet",
+          "rows": 562,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00031-of-00048.parquet",
+          "rows": 550,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00032-of-00048.parquet",
+          "rows": 537,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00033-of-00048.parquet",
+          "rows": 552,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00034-of-00048.parquet",
+          "rows": 519,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00035-of-00048.parquet",
+          "rows": 544,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00036-of-00048.parquet",
+          "rows": 549,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00037-of-00048.parquet",
+          "rows": 526,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00038-of-00048.parquet",
+          "rows": 543,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00039-of-00048.parquet",
+          "rows": 523,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00040-of-00048.parquet",
+          "rows": 587,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00041-of-00048.parquet",
+          "rows": 576,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00042-of-00048.parquet",
+          "rows": 524,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00043-of-00048.parquet",
+          "rows": 547,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00044-of-00048.parquet",
+          "rows": 536,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00045-of-00048.parquet",
+          "rows": 537,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00046-of-00048.parquet",
+          "rows": 559,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-1M_OTSL-v1.1_HTML_vlm/vlm_parquet/train-00047-of-00048.parquet",
+          "rows": 532,
+          "schema_adapter": "qwen_vl"
+        }
+      ],
+      "data_root": "/data/verl_project/distill_outputs/final_merged_v1"
+    },
+    {
+      "name": "PubTables-v2_cropped_table2html_vlm",
+      "schema_adapter": "qwen_vl",
+      "weight": 1.0,
+      "total_rows": 5482,
+      "num_files": 23,
+      "files": [
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00000-of-00023.parquet",
+          "rows": 287,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00001-of-00023.parquet",
+          "rows": 276,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00002-of-00023.parquet",
+          "rows": 282,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00003-of-00023.parquet",
+          "rows": 264,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00004-of-00023.parquet",
+          "rows": 299,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00005-of-00023.parquet",
+          "rows": 246,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00006-of-00023.parquet",
+          "rows": 66,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00007-of-00023.parquet",
+          "rows": 272,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00008-of-00023.parquet",
+          "rows": 292,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00009-of-00023.parquet",
+          "rows": 271,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00010-of-00023.parquet",
+          "rows": 261,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00011-of-00023.parquet",
+          "rows": 264,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00012-of-00023.parquet",
+          "rows": 277,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00013-of-00023.parquet",
+          "rows": 54,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00014-of-00023.parquet",
+          "rows": 266,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00015-of-00023.parquet",
+          "rows": 264,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00016-of-00023.parquet",
+          "rows": 258,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00017-of-00023.parquet",
+          "rows": 250,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00018-of-00023.parquet",
+          "rows": 226,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00019-of-00023.parquet",
+          "rows": 282,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00020-of-00023.parquet",
+          "rows": 68,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00021-of-00023.parquet",
+          "rows": 287,
+          "schema_adapter": "qwen_vl"
+        },
+        {
+          "path": "PubTables-v2_cropped_table2html_vlm/vlm_parquet/train-00022-of-00023.parquet",
+          "rows": 170,
+          "schema_adapter": "qwen_vl"
+        }
+      ],
+      "data_root": "/data/verl_project/distill_outputs/final_merged_v1"
+    }
+  ]
+}

@@ -199,7 +199,7 @@ python3 /data/mineru/distill/distill_qa.py --data-root $DATA \
 
 ## 7. 仓库内容
 
-本仓归档统计信息、四档分类(本文档)与全部 manifest 文件(`manifests/`,共 ~332KB),不含 parquet 数据。
+本仓归档统计信息、四档分类(本文档)与全部 manifest 文件(`manifests/`,共 ~348KB),不含 parquet 数据。
 数据本体位于数据盘 `F:\omnidoc_vlm\`:
 
 ```
@@ -209,8 +209,20 @@ manifests/
 ├── dataset_manifest_tier2.json      # 公式+表格       88 分片 / 1,922,405 行
 ├── dataset_manifest_tier3.json      # 手写行/场景文字   2 分片 / 35,391 行
 ├── dataset_manifest_smoke.json      # 冒烟: 11 数据集各首分片(须配 --max-rows)
-└── dataset_manifest_holdout.json    # QA+grounding    94 分片 / 1,630,433 行(不刷)
+├── dataset_manifest_holdout.json    # QA+grounding    94 分片 / 1,630,433 行(不刷)
+└── final_merged_v1.json             # 蒸馏归档        88 分片 / 96,092 行
 ```
+
+`final_merged_v1.json` 记录训练机 `/data/verl_project/distill_outputs/final_merged_v1` 的蒸馏产物，供 Q-A 兼容检查。分片文件名与源 tier2 相同，下面的行数是该归档里实际保留的行，源数据行数仍以第 4 节为准。
+
+| 数据集 | 分片 | 行数 | 内容 |
+|---|---:|---:|---|
+| UniMER_Dataset_vlm | 3 | 49,269 | 公式 → LaTeX |
+| MathWriting-human_vlm | 3 | 11,462 | 手写公式 → LaTeX |
+| FinTabNet_OTSL_HTML_vlm | 11 | 3,796 | 表格 → HTML |
+| PubTables-1M_OTSL-v1.1_HTML_vlm | 48 | 26,083 | 表格 → HTML |
+| PubTables-v2_cropped_table2html_vlm | 23 | 5,482 | 裁剪表格 → HTML |
+| 合计 | 88 | **96,092** | 公式 60,731 + 表格 35,361 |
 
 `pipeline/` 为 NPU 训练机侧的蒸馏管线脚本(Ascend 910B + vLLM,教师 MinerU2.5-Pro):
 
