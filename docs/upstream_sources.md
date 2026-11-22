@@ -44,3 +44,47 @@
 - **HRDS/HRDH**: 是语义层级/阅读结构数据, 不是表格增强源 (HRDS 规则明确
   移除图表元素)。
 - **CASIA-HMDB2-line**: 是手写中文文本行 (CASIA-HWDB2.x), 与公式库无关。
+
+## 其他开源复杂表格数据集调研 (2026-11-05)
+
+目标: 补"整页上下文 + 单元格级结构 (含合并单元格)"的监督。
+
+### 先用盘上现成的: olmOCR 实测 (首分片前 3000 行)
+
+| 指标 | 实测值 | 对比 |
+|---|---|---|
+| 含表页占比 | 16.2% | 按内容自然分布 (可用 is_table 筛) |
+| 多表页 | 24.8% | — |
+| 行数/表 | p50=7, p90=24, max=110; >=20行 14.4%, >=50行 1.5% | 长表比 Infinity 多 |
+| 列数/表 | p50=4; >=10列 4.1% | 优于 Infinity (1.8%) |
+| **colspan / rowspan** | **27.5% / 14.7%** | **高于 hp_omni (16.8%/8.8%)** |
+| 含合并单元格的含表页 | **36.3%** | 复杂结构覆盖优秀 |
+
+结论: olmOCR (261,988 行已在盘上) 是**最省事的复杂表格源**,
+先补 manifest 登记 + 用 `is_table` 筛含表页即可, 不必急着下新数据集。
+
+### 候选新数据集 (按优先级)
+
+| 优先级 | 数据集 | 出处 | 对本需求的适配点 |
+|---|---|---|---|
+| **P0** | **PubTables-v2 (full-pages + full-documents 集合)** | [arXiv 2512.10888](https://arxiv.org/html/2512.10888v1) · Kensho/S&P Global | 50 万+表格三级上下文: cropped(已用)/整页/全文; **9,172 篇全文各含至少一个跨页多部分表格 (最长跨 13 页)**, 是"整页+跨页表格"独一份的监督; 与现有 PubTables-v2 cropped 同族易接入 |
+| P1 | DocGenome | [GitHub Alpha-Innovator/DocGenome](https://github.com/Alpha-Innovator/DocGenome) (arXiv 2406.11633) | 50 万篇 arXiv 论文 (650 万页), 13 类组件属性+6 类逻辑关系, 整页结构化标注, 量大, 适合整页解析主粮 |
+| P1 | PubTables-1M detection 集合 | [microsoft/table-transformer](https://github.com/microsoft/table-transformer) | 46 万整页表格 bbox, 可与 structure 集合的 crop 联动合成整页解析样本 (需 join, 工程量比 PubTables-v2 大) |
+| P2 | cTDaR 2019 Track B | [Zenodo 2649217](https://zenodo.org/records/2649217) | 现代+历史整页各 600 训练图, XML 单元格结构含跨行跨列; 历史手写表格来自 23 个机构, 适合作"复杂结构 booster" (量小) |
+| P3 | MARMOT | Rastogi et al. | 2000 中英整页, 表格区域/列级标注 (layout 级, 单元格结构弱), 仅补充版面 |
+
+### 不适合本需求的常见数据集 (避免误选)
+
+- **HiTab** (microsoft/HiTab): 层级表格 QA/NLG, 非结构转写; 合并单元格只有
+  core-cell 记录, 不是 HTML colspan 标签
+- **PubLayNet / DocLayNet**: 版面检测, 无单元格结构
+- **WikiTableQuestions / TAT-QA / FinQA / HiTab**: QA 任务, 非解析监督
+- **ICDAR 2013 table competition**: 156 表, 无训练数据
+- **TableBank / SciTSR / SynthTabNet**: 都是 crop 级, 不解决整页缺口
+  (可作 crop 多样性补充)
+
+### 建议动作
+
+1. olmOCR 补 manifest 登记, 按 `is_table` 筛含表页入合训 (零下载);
+2. 需要"整页+跨页多部分表格"再上 PubTables-v2 full-pages/full-documents;
+3. 需要更大量整页主粮上 DocGenome; cTDaR 作小规模复杂结构补强。
