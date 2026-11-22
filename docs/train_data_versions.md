@@ -17,4 +17,17 @@
 | 7 |  | 新增 10K 整页数据（Infinity-Doc-400K）+ 10K 蒸馏标签。 |
 | 8 |  | 清理 response 中泄露的 base64 `<img>`。 |
 
+## v1 `final_merged_v1`
+
+`final_merged_v1.json` 记录训练机 `/data/verl_project/distill_outputs/final_merged_v1` 的蒸馏产物，供 Q-A 兼容检查。分片文件名与源 tier2 相同，下面的行数是该归档里实际保留的行，源数据行数仍以 README 第 4 节为准。
+
+| 数据集 | 分片 | 行数 | 内容 |
+|---|---:|---:|---|
+| UniMER_Dataset_vlm | 3 | 49,269 | 公式 → LaTeX |
+| MathWriting-human_vlm | 3 | 11,462 | 手写公式 → LaTeX |
+| FinTabNet_OTSL_HTML_vlm | 11 | 3,796 | 表格 → HTML |
+| PubTables-1M_OTSL-v1.1_HTML_vlm | 48 | 26,083 | 表格 → HTML |
+| PubTables-v2_cropped_table2html_vlm | 23 | 5,482 | 裁剪表格 → HTML |
+| 合计 | 88 | **96,092** | 公式 60,731 + 表格 35,361 |
+
 追加时写清这一版相对上一版改了什么。样本数和指标只记已经测到的数字。跟踪表没有版本号就留空。
