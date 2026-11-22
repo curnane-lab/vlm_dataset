@@ -224,6 +224,8 @@ manifests/
 | PubTables-v2_cropped_table2html_vlm | 23 | 5,482 | 裁剪表格 → HTML |
 | 合计 | 88 | **96,092** | 公式 60,731 + 表格 35,361 |
 
+之后各版训练数据的变化记在 `docs/train_data_versions.md`，新版本追加在表末。
+
 `pipeline/` 为 NPU 训练机侧的蒸馏管线脚本(Ascend 910B + vLLM,教师 MinerU2.5-Pro):
 
 ```
