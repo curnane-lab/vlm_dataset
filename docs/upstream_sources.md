@@ -5,17 +5,13 @@
 > 追溯标签来源。转换映射(源字段 → messages/images)的权威实现记录见
 > `pipeline/` 构建脚本与本仓 README 第 2/4 节。
 
-## 注意: 盘上现状 (2026-11-05 更新)
+## 注意: 盘上现状
 
-- **分盘存储**: `F:\omnidoc_vlm\` 存 12 个数据集 (+ 未登记的 olmOCR),
-  `D:\dataset\` 存另外 6 个 (FinTabNet_OTSL_HTML_vlm + FineVision×5)。
-  D 盘 6 个已逐分片核对, 行数与 manifest 完全一致、0 缺失 (36GB)。
-  manifest 驱动的脚本按 `--data-root` 单根寻址; 若需单树访问, 可在 F: 下建
-  指向 D: 的 junction: `mklink /J F:\omnidoc_vlm\<name> D:\dataset\<name>`。
-- `F:\omnidoc_vlm\<数据集>\` 与 `D:\dataset\<数据集>\` 目前**只保留转换后的
-  `vlm_parquet/`**; 当时下载的源 parquet (`parquet/` 子目录) 已被清理。
-  要做**字段级回溯**(Infinity 的 `id`/`attributes`、olmOCR 的 `url`/`is_table`
-  等) 需重新下载上游原始包。
+- `F:\omnidoc_vlm\<数据集>\` 目前**只保留转换后的 `vlm_parquet/`**; 当时下载的
+  源 parquet (`parquet/` 子目录) 已被清理。要做**字段级回溯**(Infinity 的
+  `id`/`attributes`、olmOCR 的 `url`/`is_table` 等) 需重新下载上游原始包。
+- FinTabNet 与 5 个 FineVision 目录当前不在 F 盘 (可能被移走); manifest
+  仍登记, 脚本按缺失自动 skip。
 
 ## 对照表
 
